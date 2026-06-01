@@ -14,9 +14,13 @@ type RepositorySqlLite struct {
 }
 
 func (r *RepositorySqlLite) Create(ctx context.Context, group *MemoryGroup) error {
-	r.db.ExecContext(ctx, `
+	_, err := r.db.ExecContext(ctx, `
 INSERT INTO memory_group (name, description) VALUES (?, ?)
 `, group.Name, group.Description)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -44,9 +48,13 @@ ORDER BY created_at DESC;
 }
 
 func (r *RepositorySqlLite) Put(ctx context.Context, group *MemoryGroup) error {
-	r.db.ExecContext(ctx, `
+	_, err := r.db.ExecContext(ctx, `
 UPDATE memory_group SET name = ?, description = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?;
 `, group.Name, group.Description, group.ID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

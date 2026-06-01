@@ -19,10 +19,11 @@ func (r *RepositorySqlLite) FindReferences(ctx context.Context, keys []string) (
 	var result []*Memory
 
 	query := `
-SELECT *, bm25(memories_fts, 10.0, 2.0) AS score FROM memories
+SELECT memories.id, memories.group_id, memories.name, memories.content, memories.created_at, memories.updated_at
+FROM memories
 JOIN memory_fts ON memories.id = memory_fts.id
 WHERE memory_fts MATCH ?
-ORDER BY score;
+ORDER BY bm25(memory_fts, 10.0, 2.0);
 `
 
 	rows, err := r.db.QueryContext(ctx, query, orMatch)
@@ -43,6 +44,10 @@ ORDER BY score;
 }
 
 func (r *RepositorySqlLite) LinkMemories(ctx context.Context, memory *Memory, memories []*Memory) error {
+	if len(memories) == 0 {
+		return nil
+	}
+
 	query := strings.Builder{}
 	query.WriteString(`INSERT INTO memory_memory (memory_id_1, memory_id_2)`)
 	query.WriteString(" VALUES ")
@@ -50,11 +55,7 @@ func (r *RepositorySqlLite) LinkMemories(ctx context.Context, memory *Memory, me
 	placeholders := make([]string, len(memories))
 	args := make([]any, 0, len(memories)*2)
 
-	for i, _ := range memories {
-		if i > 0 {
-			query.WriteString(", ")
-		}
-
+	for i := range memories {
 		placeholders[i] = "(?, ?)"
 		args = append(args, memory.ID, memories[i].ID)
 	}
@@ -79,15 +80,48 @@ func (r *RepositorySqlLite) Create(ctx context.Context, memory *Memory) error {
 	defer tx.Rollback()
 
 	err = tx.QueryRowContext(ctx, `
-INSERT INTO memories (group_id, name, description) VALUES (?, ?, ?) RETURNING id
+INSERT INTO memories (group_id, name, content) VALUES (?, ?, ?) RETURNING id
 `, memory.GroupID, memory.Name, memory.Content).Scan(&id)
 	if err != nil {
 		return err
 	}
 
 	_, err = tx.ExecContext(ctx, `
-INSERT INTO memory_fts (rowid, name, description) VALUES (?, ?, ?)
+INSERT INTO memory_fts (id, name, content) VALUES (?, ?, ?)
 `, id, memory.Name, memory.Content)
+	if err != nil {
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	memory.ID = id
+
+	return nil
+}
+
+func (r *RepositorySqlLite) Put(ctx context.Context, memory *Memory) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(ctx, `
+UPDATE memories SET group_id = ?, name = ?, content = ?, updated_at = CURRENT_TIMESTAMP
+WHERE id = ?;
+`, memory.GroupID, memory.Name, memory.Content, memory.ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+UPDATE memory_fts SET id = ?, name = ?, content = ?
+WHERE rowid = ?;
+`, memory.ID, memory.Name, memory.Content, memory.ID)
 	if err != nil {
 		return err
 	}
@@ -99,22 +133,10 @@ INSERT INTO memory_fts (rowid, name, description) VALUES (?, ?, ?)
 	return nil
 }
 
-func (r *RepositorySqlLite) Put(ctx context.Context, memory *Memory) error {
-	_, err := r.db.ExecContext(ctx, `
-UPDATE memories SET group_id = ?, name = ?, description = ?, updated_at = CURRENT_TIMESTAMP
-WHERE id = ?;
-`, memory.GroupID, memory.Name, memory.Content, memory.ID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (r *RepositorySqlLite) GetAllByGroup(ctx context.Context, groupId int) ([]*Memory, error) {
 	var result []*Memory
 	rows, err := r.db.QueryContext(ctx, `
-SELECT id, group_id, name, description, created_at, updated_at FROM memories
+SELECT id, group_id, name, content, created_at, updated_at FROM memories
 WHERE group_id = ?
 ORDER BY created_at DESC;
 `, groupId)
