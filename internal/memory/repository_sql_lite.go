@@ -120,7 +120,7 @@ WHERE id = ?;
 
 	_, err = tx.ExecContext(ctx, `
 UPDATE memory_fts SET id = ?, name = ?, content = ?
-WHERE rowid = ?;
+WHERE id = ?;
 `, memory.ID, memory.Name, memory.Content, memory.ID)
 	if err != nil {
 		return err

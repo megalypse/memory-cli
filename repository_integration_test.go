@@ -75,6 +75,13 @@ func TestMemoryRepositoryIntegration(t *testing.T) {
 	group := createGroup(t, ctx, groupRepository, "engineering")
 	otherGroup := createGroup(t, ctx, groupRepository, "personal")
 
+	_, err := db.ExecContext(ctx, `
+INSERT INTO memory_fts (id, name, content) VALUES (?, ?, ?)
+`, 999, "noise", "unrelated fts row")
+	if err != nil {
+		t.Fatalf("seed unrelated fts row: %v", err)
+	}
+
 	first := &memory.Memory{
 		GroupID: group.ID,
 		Name:    "alpha",
@@ -101,6 +108,8 @@ func TestMemoryRepositoryIntegration(t *testing.T) {
 		}
 	}
 
+	assertSingleFTSRow(t, ctx, db, first.ID)
+
 	memories, err := memoryRepository.GetAllByGroup(ctx, group.ID)
 	if err != nil {
 		t.Fatalf("get memories by group: %v", err)
@@ -115,6 +124,8 @@ func TestMemoryRepositoryIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("put memory: %v", err)
 	}
+
+	assertSingleFTSRow(t, ctx, db, first.ID)
 
 	references, err := memoryRepository.FindReferences(ctx, []string{"updated", "testcontainers"})
 	if err != nil {
@@ -232,5 +243,22 @@ func assertMemoryNames(t *testing.T, memories []*memory.Memory, expected ...stri
 		if !seen[name] {
 			t.Fatalf("expected memory %q in results, got %#v", name, seen)
 		}
+	}
+}
+
+func assertSingleFTSRow(t *testing.T, ctx context.Context, db *sql.DB, memoryID int) {
+	t.Helper()
+
+	var rows int
+	err := db.QueryRowContext(ctx, `
+SELECT COUNT(*) FROM memory_fts
+WHERE id = ?
+`, memoryID).Scan(&rows)
+	if err != nil {
+		t.Fatalf("count fts rows for memory %d: %v", memoryID, err)
+	}
+
+	if rows != 1 {
+		t.Fatalf("expected 1 fts row for memory %d, got %d", memoryID, rows)
 	}
 }
