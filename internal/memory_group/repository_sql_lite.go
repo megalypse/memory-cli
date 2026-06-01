@@ -21,11 +21,32 @@ INSERT INTO memory_group (name, description) VALUES (?, ?)
 }
 
 func (r *RepositorySqlLiteMemoryGroup) GetAll(ctx context.Context) ([]*MemoryGroup, error) {
-	//TODO implement me
-	panic("implement me")
+	var result []*MemoryGroup
+	rows, err := r.db.QueryContext(ctx, `
+SELECT id, name, description, created_at, updated_at FROM memory_group
+ORDER BY created_at DESC;
+`)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var group MemoryGroup
+		if err := rows.Scan(&group.ID, &group.Name, &group.Description, &group.CreatedAt, &group.UpdatedAt); err != nil {
+			return nil, err
+		}
+		result = append(result, &group)
+	}
+
+	return result, nil
 }
 
 func (r *RepositorySqlLiteMemoryGroup) Put(ctx context.Context, group *MemoryGroup) error {
-	//TODO implement me
-	panic("implement me")
+	r.db.ExecContext(ctx, `
+UPDATE memory_group SET name = ?, description = ?, updated_at = CURRENT_TIMESTAMP
+WHERE id = ?;
+`, group.Name, group.Description, group.ID)
+	return nil
 }

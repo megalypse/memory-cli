@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"os"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 )
@@ -32,8 +30,10 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-func Execute() {
+func Execute() error {
 	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
+		return err
 	}
+
+	return nil
 }

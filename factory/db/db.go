@@ -17,7 +17,7 @@ func getDB() (*sql.DB, error) {
 		return nil, err
 	}
 
-	appDir := filepath.Join(dir, "memory-cli")
+	appDir := filepath.Join(dir, "memory_cli")
 
 	if err := os.MkdirAll(appDir, 0755); err != nil {
 		return nil, err

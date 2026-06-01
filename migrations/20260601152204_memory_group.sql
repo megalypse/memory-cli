@@ -1,4 +1,5 @@
-CREATE TABLE memory_group
+-- +goose Up
+CREATE TABLE IF NOT EXISTS memory_group
 (
     id          INTEGER PRIMARY KEY,
     name        TEXT NOT NULL,
@@ -6,3 +7,6 @@ CREATE TABLE memory_group
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- +goose Down
+DROP TABLE IF EXISTS memory_group;
