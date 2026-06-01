@@ -11,6 +11,8 @@ import (
 	"github.com/megalypse/memory_cli/internal/memory"
 	memorygroup "github.com/megalypse/memory_cli/internal/memory_group"
 	"github.com/pressly/goose/v3"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	_ "modernc.org/sqlite"
@@ -25,45 +27,31 @@ func TestMemoryGroupRepositoryIntegration(t *testing.T) {
 		Name:        "work",
 		Description: "Work notes",
 	})
-	if err != nil {
-		t.Fatalf("create memory group: %v", err)
-	}
+	require.NoError(t, err)
 
 	err = repository.Create(ctx, &memorygroup.MemoryGroup{
 		Name:        "personal",
 		Description: "Personal notes",
 	})
-	if err != nil {
-		t.Fatalf("create second memory group: %v", err)
-	}
+	require.NoError(t, err)
 
 	groups, err := repository.GetAll(ctx)
-	if err != nil {
-		t.Fatalf("get all memory groups: %v", err)
-	}
+	require.NoError(t, err)
 
-	if len(groups) != 2 {
-		t.Fatalf("expected 2 memory groups, got %d", len(groups))
-	}
+	assert.Len(t, groups, 2)
 
 	work := findGroup(t, groups, "work")
 	work.Name = "work-updated"
 	work.Description = "Updated work notes"
 
 	err = repository.Put(ctx, work)
-	if err != nil {
-		t.Fatalf("put memory group: %v", err)
-	}
+	require.NoError(t, err)
 
 	groups, err = repository.GetAll(ctx)
-	if err != nil {
-		t.Fatalf("get all memory groups after update: %v", err)
-	}
+	require.NoError(t, err)
 
 	updated := findGroup(t, groups, "work-updated")
-	if updated.Description != "Updated work notes" {
-		t.Fatalf("expected updated description, got %q", updated.Description)
-	}
+	assert.Equal(t, "Updated work notes", updated.Description)
 }
 
 func TestMemoryRepositoryIntegration(t *testing.T) {
@@ -78,9 +66,7 @@ func TestMemoryRepositoryIntegration(t *testing.T) {
 	_, err := db.ExecContext(ctx, `
 INSERT INTO memory_fts (id, name, content) VALUES (?, ?, ?)
 `, 999, "noise", "unrelated fts row")
-	if err != nil {
-		t.Fatalf("seed unrelated fts row: %v", err)
-	}
+	require.NoError(t, err)
 
 	first := &memory.Memory{
 		GroupID: group.ID,
@@ -100,57 +86,39 @@ INSERT INTO memory_fts (id, name, content) VALUES (?, ?, ?)
 
 	for _, item := range []*memory.Memory{first, second, third} {
 		err := memoryRepository.Create(ctx, item)
-		if err != nil {
-			t.Fatalf("create memory %q: %v", item.Name, err)
-		}
-		if item.ID == 0 {
-			t.Fatalf("expected created memory %q to receive an id", item.Name)
-		}
+		require.NoError(t, err)
+		assert.NotZero(t, item.ID)
 	}
 
 	assertSingleFTSRow(t, ctx, db, first.ID)
 
 	memories, err := memoryRepository.GetAllByGroup(ctx, group.ID)
-	if err != nil {
-		t.Fatalf("get memories by group: %v", err)
-	}
+	require.NoError(t, err)
 
-	if len(memories) != 2 {
-		t.Fatalf("expected 2 memories for group, got %d", len(memories))
-	}
+	assert.Len(t, memories, 2)
 
 	first.Content = "updated sqlite full text search"
 	err = memoryRepository.Put(ctx, first)
-	if err != nil {
-		t.Fatalf("put memory: %v", err)
-	}
+	require.NoError(t, err)
 
 	assertSingleFTSRow(t, ctx, db, first.ID)
 
 	references, err := memoryRepository.FindReferences(ctx, []string{"updated", "testcontainers"})
-	if err != nil {
-		t.Fatalf("find references: %v", err)
-	}
+	require.NoError(t, err)
 
 	assertMemoryNames(t, references, "alpha", "bravo")
 
 	err = memoryRepository.LinkMemories(ctx, first, []*memory.Memory{second})
-	if err != nil {
-		t.Fatalf("link memories: %v", err)
-	}
+	require.NoError(t, err)
 
 	var links int
 	err = db.QueryRowContext(ctx, `
 SELECT COUNT(*) FROM memory_memory
 WHERE memory_id_1 = ? AND memory_id_2 = ?
 `, first.ID, second.ID).Scan(&links)
-	if err != nil {
-		t.Fatalf("count memory links: %v", err)
-	}
+	require.NoError(t, err)
 
-	if links != 1 {
-		t.Fatalf("expected 1 memory link, got %d", links)
-	}
+	assert.Equal(t, 1, links)
 }
 
 func newIntegrationDB(t *testing.T, ctx context.Context) *sql.DB {
@@ -166,35 +134,23 @@ func newIntegrationDB(t *testing.T, ctx context.Context) *sql.DB {
 		},
 		Started: true,
 	})
-	if err != nil {
-		t.Fatalf("start test container: %v", err)
-	}
+	require.NoError(t, err)
 	t.Cleanup(func() {
-		if err := container.Terminate(context.Background()); err != nil {
-			t.Errorf("terminate test container: %v", err)
-		}
+		assert.NoError(t, container.Terminate(context.Background()))
 	})
 
 	dbPath := filepath.Join(t.TempDir(), "memory.db")
 	db, err := sql.Open("sqlite", dbPath)
-	if err != nil {
-		t.Fatalf("open sqlite db: %v", err)
-	}
+	require.NoError(t, err)
 	t.Cleanup(func() {
-		if err := db.Close(); err != nil {
-			t.Errorf("close sqlite db: %v", err)
-		}
+		assert.NoError(t, db.Close())
 	})
 
-	if err := goose.SetDialect("sqlite3"); err != nil {
-		t.Fatalf("set goose dialect: %v", err)
-	}
+	require.NoError(t, goose.SetDialect("sqlite3"))
 
 	goose.SetBaseFS(os.DirFS("."))
 
-	if err := goose.Up(db, "migrations"); err != nil {
-		t.Fatalf("run migrations: %v", err)
-	}
+	require.NoError(t, goose.Up(db, "migrations"))
 
 	return db
 }
@@ -206,14 +162,10 @@ func createGroup(t *testing.T, ctx context.Context, repository memorygroup.Repos
 		Name:        name,
 		Description: name + " description",
 	})
-	if err != nil {
-		t.Fatalf("create group %q: %v", name, err)
-	}
+	require.NoError(t, err)
 
 	groups, err := repository.GetAll(ctx)
-	if err != nil {
-		t.Fatalf("get groups after creating %q: %v", name, err)
-	}
+	require.NoError(t, err)
 
 	return findGroup(t, groups, name)
 }
@@ -227,7 +179,7 @@ func findGroup(t *testing.T, groups []*memorygroup.MemoryGroup, name string) *me
 		}
 	}
 
-	t.Fatalf("expected group %q to exist", name)
+	require.Failf(t, "expected group to exist", "group %q was not found", name)
 	return nil
 }
 
@@ -240,9 +192,7 @@ func assertMemoryNames(t *testing.T, memories []*memory.Memory, expected ...stri
 	}
 
 	for _, name := range expected {
-		if !seen[name] {
-			t.Fatalf("expected memory %q in results, got %#v", name, seen)
-		}
+		assert.Truef(t, seen[name], "expected memory %q in results, got %#v", name, seen)
 	}
 }
 
@@ -254,11 +204,7 @@ func assertSingleFTSRow(t *testing.T, ctx context.Context, db *sql.DB, memoryID 
 SELECT COUNT(*) FROM memory_fts
 WHERE id = ?
 `, memoryID).Scan(&rows)
-	if err != nil {
-		t.Fatalf("count fts rows for memory %d: %v", memoryID, err)
-	}
+	require.NoError(t, err)
 
-	if rows != 1 {
-		t.Fatalf("expected 1 fts row for memory %d, got %d", memoryID, rows)
-	}
+	assert.Equal(t, 1, rows)
 }

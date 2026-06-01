@@ -20,8 +20,8 @@ func (r *RepositorySqlLite) FindReferences(ctx context.Context, keys []string) (
 
 	query := `
 SELECT memories.id, memories.group_id, memories.name, memories.content, memories.created_at, memories.updated_at
-FROM memories
-JOIN memory_fts ON memories.id = memory_fts.id
+FROM memory_fts
+JOIN memories ON memories.id = memory_fts.id
 WHERE memory_fts MATCH ?
 ORDER BY bm25(memory_fts, 10.0, 2.0);
 `
