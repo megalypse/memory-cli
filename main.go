@@ -21,7 +21,12 @@ func startup() error {
 		return err
 	}
 
+	if err := goose.SetDialect("sqlite3"); err != nil {
+		return err
+	}
+
 	goose.SetBaseFS(migrationsFS)
+
 	err = goose.Up(db, "migrations")
 	if err != nil {
 		return err
