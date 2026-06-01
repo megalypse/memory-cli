@@ -16,6 +16,11 @@ func main() {
 }
 
 func startup() error {
+	env := "PROD"
+	if val := os.Getenv("MRY_ENV"); val != "" {
+		env = val
+	}
+
 	db, err := db2.GetDB()
 	if err != nil {
 		return err
@@ -26,6 +31,13 @@ func startup() error {
 	}
 
 	goose.SetBaseFS(migrationsFS)
+
+	if env == "DEV" {
+		err = goose.Reset(db, "migrations")
+		if err != nil {
+			return err
+		}
+	}
 
 	err = goose.Up(db, "migrations")
 	if err != nil {

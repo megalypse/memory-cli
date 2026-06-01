@@ -5,22 +5,22 @@ import (
 	"database/sql"
 )
 
-func NewRepositorySqlLiteMemoryGroup(db *sql.DB) RepositoryMemoryGroup {
-	return &RepositorySqlLiteMemoryGroup{db: db}
+func NewRepositorySqlLite(db *sql.DB) RepositoryMemoryGroup {
+	return &RepositorySqlLite{db: db}
 }
 
-type RepositorySqlLiteMemoryGroup struct {
+type RepositorySqlLite struct {
 	db *sql.DB
 }
 
-func (r *RepositorySqlLiteMemoryGroup) Create(ctx context.Context, group *MemoryGroup) error {
+func (r *RepositorySqlLite) Create(ctx context.Context, group *MemoryGroup) error {
 	r.db.ExecContext(ctx, `
 INSERT INTO memory_group (name, description) VALUES (?, ?)
 `, group.Name, group.Description)
 	return nil
 }
 
-func (r *RepositorySqlLiteMemoryGroup) GetAll(ctx context.Context) ([]*MemoryGroup, error) {
+func (r *RepositorySqlLite) GetAll(ctx context.Context) ([]*MemoryGroup, error) {
 	var result []*MemoryGroup
 	rows, err := r.db.QueryContext(ctx, `
 SELECT id, name, description, created_at, updated_at FROM memory_group
@@ -43,7 +43,7 @@ ORDER BY created_at DESC;
 	return result, nil
 }
 
-func (r *RepositorySqlLiteMemoryGroup) Put(ctx context.Context, group *MemoryGroup) error {
+func (r *RepositorySqlLite) Put(ctx context.Context, group *MemoryGroup) error {
 	r.db.ExecContext(ctx, `
 UPDATE memory_group SET name = ?, description = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?;

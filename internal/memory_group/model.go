@@ -6,6 +6,6 @@ type MemoryGroup struct {
 	ID          int
 	Name        string
 	Description string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	CreatedAt   *time.Time
+	UpdatedAt   *time.Time
 }
