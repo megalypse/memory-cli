@@ -15,11 +15,11 @@ type Root struct {
 	width  int
 }
 
-func (r *Root) Width() int {
+func (r *Root) GetWidth() int {
 	return r.width
 }
 
-func (r *Root) Height() int {
+func (r *Root) GetHeight() int {
 	return r.height
 }
 
@@ -46,7 +46,8 @@ func (r *Root) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (r *Root) View() string {
 	if r.router == nil {
-		r.router = &mainmenu.MainMenu{}
+		r.router = mainmenu.NewMainMenu(r)
+		r.router.Init()
 	}
 
 	title := lipgloss.Place(r.width, r.height, lipgloss.Center, lipgloss.Center, components.GetAppTitle())

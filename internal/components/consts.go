@@ -1,10 +1,12 @@
 package components
 
+import "github.com/charmbracelet/lipgloss"
+
 const (
 	LineBreak = "\n"
 	LineSkip  = "\n\n"
 )
 
-const (
-	ColorMain = "#f5e72c"
+var (
+	ColorMain = lipgloss.Color("#f5e72c")
 )

@@ -1,6 +1,6 @@
 module github.com/megalypse/memory_cli
 
-go 1.26.2
+go 1.26.3
 
 require (
 	github.com/charmbracelet/bubbletea v1.3.10
@@ -10,6 +10,8 @@ require (
 	github.com/testcontainers/testcontainers-go v0.42.0
 	modernc.org/sqlite v1.51.0
 )
+
+replace github.com/megalypse/go-cli-components => ../cli_components
 
 require (
 	dario.cat/mergo v1.0.2 // indirect
@@ -49,6 +51,7 @@ require (
 	github.com/mattn/go-isatty v0.0.21 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/megalypse/go-cli-components v0.0.0-20260603163045-346fe1b8080b // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/go-archive v0.2.0 // indirect
