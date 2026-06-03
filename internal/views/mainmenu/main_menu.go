@@ -15,5 +15,6 @@ func (m *MainMenu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *MainMenu) View() string {
+
 	return ""
 }

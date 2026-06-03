@@ -17,7 +17,7 @@ func main() {
 
 func startup() error {
 	env := "PROD"
-	if val := os.Getenv("MRY_ENV"); val != "" {
+	if val := os.Getenv("MaRY_ENV"); val != "" {
 		env = val
 	}
 
