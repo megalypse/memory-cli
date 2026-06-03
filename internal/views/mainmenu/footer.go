@@ -9,7 +9,7 @@ import (
 )
 
 func newFooter(parent components2.Container) tea.Model {
-	cursor := &components.CursorList{
+	cursor := &components.CursorListVertical{
 		Items: []string{
 			"(N) Novo grupo",
 			"(E) Editar grupo",
@@ -19,7 +19,9 @@ func newFooter(parent components2.Container) tea.Model {
 
 	cursor.KeyActions = []components.OnKeyFn{
 		components.OnKey(func() (tea.Model, tea.Cmd) {
-			return nil, msgs.NewGroup
+			return nil, func() tea.Msg {
+				return msgs.MsgNewGroup()
+			}
 		}, "n"),
 		components.OnKey(func() (tea.Model, tea.Cmd) {
 			return nil, nil
@@ -36,7 +38,7 @@ func newFooter(parent components2.Container) tea.Model {
 }
 
 type footer struct {
-	options *components.CursorList
+	options *components.CursorListVertical
 	parent  components2.Container
 }
 
@@ -45,7 +47,12 @@ func (f *footer) Init() tea.Cmd {
 }
 
 func (f *footer) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	return f.options.Update(msg)
+	model, cmd := f.options.Update(msg)
+	if model != nil {
+		return model, cmd
+	}
+
+	return nil, cmd
 }
 
 func (f *footer) View() string {

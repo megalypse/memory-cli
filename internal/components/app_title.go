@@ -7,5 +7,5 @@ import (
 
 func GetAppTitle() string {
 	title := figure.NewFigure("Memory", "", true).String()
-	return lipgloss.NewStyle().Foreground(lipgloss.Color(ColorMain)).Render(title)
+	return lipgloss.NewStyle().Foreground(ColorMain).Render(title)
 }

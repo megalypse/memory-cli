@@ -1,4 +1,4 @@
-package memory_group
+package memorygroup
 
 import "context"
 

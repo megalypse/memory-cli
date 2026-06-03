@@ -1,12 +1,18 @@
-package memory_group
+package memorygroup
 
 import (
 	"context"
 	"database/sql"
 )
 
+var repositorySqlLite RepositoryMemoryGroup
+
 func NewRepositorySqlLite(db *sql.DB) RepositoryMemoryGroup {
-	return &RepositorySqlLite{db: db}
+	if repositorySqlLite == nil {
+		repositorySqlLite = &RepositorySqlLite{db: db}
+	}
+
+	return repositorySqlLite
 }
 
 type RepositorySqlLite struct {

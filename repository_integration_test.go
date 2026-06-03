@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/megalypse/memory_cli/internal/memory"
-	memorygroup "github.com/megalypse/memory_cli/internal/memory_group"
+	memorygroup "github.com/megalypse/memory_cli/internal/memorygroup"
 	"github.com/pressly/goose/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -2,10 +2,8 @@ package msgs
 
 import tea "github.com/charmbracelet/bubbletea"
 
-type newGroup struct{}
+type NewGroup struct{}
 
-var signalNewGroup = &newGroup{}
-
-func NewGroup() tea.Msg {
-	return signalNewGroup
+func MsgNewGroup() tea.Msg {
+	return NewGroup{}
 }
