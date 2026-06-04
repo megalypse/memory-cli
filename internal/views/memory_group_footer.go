@@ -21,7 +21,7 @@ func (m *memoryGroupFooter) Init() tea.Cmd {
 	m.heightRatio = 0.1
 
 	cursor := &components.CursorListVertical{
-		Items:      []string{"(a) Add", "(e) Edit", "(d) Delete"},
+		Items:      []string{"(a) Add", "(e) Edit", "(d -> y) Delete"},
 		RenderSize: 3,
 	}
 
@@ -40,7 +40,7 @@ func (m *memoryGroupFooter) Init() tea.Cmd {
 			}
 
 			return nil, nil
-		}, "d"),
+		}, "y"),
 	}
 
 	m.optionsCursor = cursor
@@ -48,7 +48,7 @@ func (m *memoryGroupFooter) Init() tea.Cmd {
 }
 
 func (m *memoryGroupFooter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	return nil, nil
+	return m.optionsCursor.Update(msg)
 }
 
 func (m *memoryGroupFooter) View() string {

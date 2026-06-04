@@ -19,6 +19,17 @@ type RepositorySqlLite struct {
 	db *sql.DB
 }
 
+func (r *RepositorySqlLite) Delete(ctx context.Context, id int) error {
+	_, err := r.db.ExecContext(ctx, `
+DELETE FROM memory_group WHERE id = ?;
+`, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *RepositorySqlLite) Create(ctx context.Context, group *MemoryGroup) error {
 	_, err := r.db.ExecContext(ctx, `
 INSERT INTO memory_group (name, description) VALUES (?, ?)
