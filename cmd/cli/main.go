@@ -10,7 +10,7 @@ var rootCmd = &cobra.Command{
 	Use:   "",
 	Short: "Start Memory CLI",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		p := tea.NewProgram(views.GetRoot())
+		p := tea.NewProgram(&views.Root{})
 
 		_, err := p.Run()
 		return err
