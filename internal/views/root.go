@@ -16,11 +16,7 @@ type Root struct {
 
 func (r *Root) Init() tea.Cmd {
 	if r.route == nil {
-		newView := &MemoryGroup{}
-		initCmd := newView.Init()
-		r.PushRoute(newView)
-
-		return initCmd
+		return r.PushRoute(&MemoryGroup{})
 	}
 
 	return nil
@@ -48,8 +44,7 @@ func (r *Root) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (r *Root) View() string {
-	title := figure.NewFigure("Memory", "", true).String()
-	title = lipgloss.NewStyle().Foreground(components.ColorMain).Render(title)
+	title := r.getTitle()
 
 	return lipgloss.JoinVertical(lipgloss.Center, title, r.route.View())
 }
@@ -72,7 +67,14 @@ func (r *Root) PopRoute() tea.Cmd {
 }
 
 func (r *Root) resizeCurrentRoute() {
-	title := figure.NewFigure("Memory", "", true).String()
+	title := r.getTitle()
 
 	r.route.SetSize(r.width, r.height-lipgloss.Height(title))
+}
+
+func (r *Root) getTitle() string {
+	title := figure.NewFigure("Memory", "", true).String()
+	title = lipgloss.NewStyle().Foreground(components.ColorMain).Render(title)
+	title = lipgloss.PlaceHorizontal(r.width, lipgloss.Center, title)
+	return title
 }

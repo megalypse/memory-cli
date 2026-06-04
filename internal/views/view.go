@@ -6,4 +6,6 @@ type View interface {
 	tea.Model
 
 	SetSize(width, height int)
+	GetWidth() int
+	GetHeight() int
 }

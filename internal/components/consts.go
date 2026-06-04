@@ -8,5 +8,6 @@ const (
 )
 
 var (
-	ColorMain = lipgloss.Color("#f5e72c")
+	ColorMain         = lipgloss.Color("#f5e72c")
+	ColorMainContrast = lipgloss.Color("#121105")
 )
