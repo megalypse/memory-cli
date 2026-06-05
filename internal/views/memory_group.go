@@ -5,7 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/megalypse/go-cli-components/components"
+	"github.com/megalypse/go-cli-components/clicomponents"
 	"github.com/megalypse/memory_cli/internal/memorygroup"
 	"github.com/megalypse/memory_cli/internal/msgs"
 )
@@ -13,10 +13,10 @@ import (
 type MemoryGroup struct {
 	base
 
-	groupsCursor *components.CursorListVertical
+	groupsCursor *clicomponents.CursorListVertical
 	groups       []*memorygroup.MemoryGroup
 
-	footer *memoryGroupFooter
+	footer *footer
 
 	repository memorygroup.RepositoryMemoryGroup
 }
@@ -31,10 +31,35 @@ func (m *MemoryGroup) SetSize(width, height int) {
 }
 
 func (m *MemoryGroup) Init() tea.Cmd {
-	m.footer = &memoryGroupFooter{}
+	m.footer = &footer{}
+
+	cursor := &clicomponents.CursorListVertical{
+		Items:      []string{"(a) Add", "(e) Edit", "(d -> y) Delete"},
+		RenderSize: 3,
+	}
+
+	cursor.KeyActions = []clicomponents.OnKeyFn{
+		clicomponents.OnKey("a", func() (tea.Model, tea.Cmd) {
+			return nil, msgs.PublishMessage(msgs.NewGroup{})
+		}),
+		clicomponents.OnKeys(func() (tea.Model, tea.Cmd) {
+			return nil, nil
+		}, "e"),
+		clicomponents.OnKeys(func() (tea.Model, tea.Cmd) {
+			if GetLastPressedKey() == "d" {
+				SetLastPressedKey("")
+
+				return nil, msgs.PublishMessage(msgs.DeleteGroup{})
+			}
+
+			return nil, nil
+		}, "y"),
+	}
+
+	m.footer.Options = cursor
 	m.footer.Init()
 
-	m.groupsCursor = &components.CursorListVertical{
+	m.groupsCursor = &clicomponents.CursorListVertical{
 		RenderSize: 3,
 	}
 
@@ -74,7 +99,7 @@ func (m *MemoryGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg.(type) {
 	case msgs.NewGroup:
-		newRoute := &MemoryGroupCreate{}
+		newRoute := NewMemoryGroupCreate()
 		newRoute.SetSize(m.width, m.height)
 		return GetRootInstance().PushRoute(newRoute)
 	case msgs.UpdateGroups:

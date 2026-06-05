@@ -46,7 +46,10 @@ func (r *Root) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		key := msg.String()
 		SetLastPressedKey(key)
-
+		switch key {
+		case "ctrl+c":
+			return r, tea.Quit
+		}
 	}
 
 	return r, cmd

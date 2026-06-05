@@ -4,24 +4,32 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/megalypse/go-cli-components/components"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/megalypse/go-cli-components/clicomponents"
+	"github.com/megalypse/memory_cli/internal/components"
 	"github.com/megalypse/memory_cli/internal/utils"
 )
 
 func NewMemoryGroupCreate() View {
-	return &MemoryGroupCreate{}
+	return &MemoryGroupCreate{
+		inputList: &clicomponents.InputList{
+			EditMode: true,
+		},
+		footer: newMemoryGroupCreateFooter(),
+	}
 }
 
 type MemoryGroupCreate struct {
-	nameInput        *textinput.Model
-	descriptionInput *textarea.Model
-	inputList        components.InputList
+	nameInput        *components.TextInput
+	descriptionInput *components.TextArea
+	inputList        *clicomponents.InputList
 	width            int
 	height           int
+
+	footer *memoryGroupCreateFooter
 }
 
 func (m *MemoryGroupCreate) Init() tea.Cmd {
-	// Initialize inputs
 	nameInput := textinput.New()
 	nameInput.Placeholder = "Name"
 	nameInput.Focus()
@@ -29,24 +37,22 @@ func (m *MemoryGroupCreate) Init() tea.Cmd {
 	descriptionInput := textarea.New()
 	descriptionInput.Placeholder = "Description"
 
-	m.nameInput = &nameInput
-	m.descriptionInput = &descriptionInput
+	m.nameInput = &components.TextInput{Model: nameInput}
+	m.descriptionInput = &components.TextArea{Model: descriptionInput}
 
-	m.inputList.Inputs = append(m.inputList.Inputs, &nameInput)
-	m.inputList.Inputs = append(m.inputList.Inputs, &descriptionInput)
+	m.inputList.Inputs = append(m.inputList.Inputs, m.nameInput)
+	m.inputList.Inputs = append(m.inputList.Inputs, m.descriptionInput)
 
 	return nil
 }
 
 func (m *MemoryGroupCreate) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	model, cmd := m.inputList.Update(msg)
-	if model != nil {
-		return model, cmd
-	}
+	_, inputCmd := m.inputList.Update(msg)
 
-	m.nameInput.Focus()
+	m.footer.editMode = m.inputList.EditMode
+	_, footerCmd := m.footer.Update(msg)
 
-	return m, cmd
+	return m, tea.Batch(inputCmd, footerCmd)
 }
 
 func (m *MemoryGroupCreate) View() string {
@@ -54,15 +60,20 @@ func (m *MemoryGroupCreate) View() string {
 		return ""
 	}
 
-	nameView := m.nameInput.View()
-	descriptionView := m.descriptionInput.View()
-
-	return nameView + "\n" + descriptionView
+	return lipgloss.JoinVertical(
+		lipgloss.Center,
+		lipgloss.PlaceVertical(
+			m.GetHeight(),
+			lipgloss.Center,
+			m.nameInput.View()+components.LineBreak+m.descriptionInput.View()),
+		m.footer.View(),
+	)
 }
 
 func (m *MemoryGroupCreate) SetSize(width, height int) {
 	m.width = width
 	m.height = height
+
 }
 
 func (m *MemoryGroupCreate) GetWidth() int {
@@ -70,5 +81,5 @@ func (m *MemoryGroupCreate) GetWidth() int {
 }
 
 func (m *MemoryGroupCreate) GetHeight() int {
-	return utils.CalcRatio(m.height, 1)
+	return utils.CalcRatio(m.height, 0.9)
 }
