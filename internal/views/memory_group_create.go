@@ -4,9 +4,24 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/megalypse/go-cli-components/components"
+	"github.com/megalypse/memory_cli/internal/utils"
 )
 
 func NewMemoryGroupCreate() View {
+	return &MemoryGroupCreate{}
+}
+
+type MemoryGroupCreate struct {
+	nameInput        *textinput.Model
+	descriptionInput *textarea.Model
+	inputList        components.InputList
+	width            int
+	height           int
+}
+
+func (m *MemoryGroupCreate) Init() tea.Cmd {
+	// Initialize inputs
 	nameInput := textinput.New()
 	nameInput.Placeholder = "Name"
 	nameInput.Focus()
@@ -14,43 +29,46 @@ func NewMemoryGroupCreate() View {
 	descriptionInput := textarea.New()
 	descriptionInput.Placeholder = "Description"
 
-	return &MemoryGroupCreate{
-		nameInput:        &nameInput,
-		descriptionInput: &descriptionInput,
-	}
-}
+	m.nameInput = &nameInput
+	m.descriptionInput = &descriptionInput
 
-type MemoryGroupCreate struct {
-	nameInput        *textinput.Model
-	descriptionInput *textarea.Model
-}
+	m.inputList.Inputs = append(m.inputList.Inputs, &nameInput)
+	m.inputList.Inputs = append(m.inputList.Inputs, &descriptionInput)
 
-func (m *MemoryGroupCreate) Init() tea.Cmd {
-	//TODO implement me
-	panic("implement me")
+	return nil
 }
 
 func (m *MemoryGroupCreate) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	//TODO implement me
-	panic("implement me")
+	model, cmd := m.inputList.Update(msg)
+	if model != nil {
+		return model, cmd
+	}
+
+	m.nameInput.Focus()
+
+	return m, cmd
 }
 
 func (m *MemoryGroupCreate) View() string {
-	//TODO implement me
-	panic("implement me")
+	if m.nameInput == nil || m.descriptionInput == nil {
+		return ""
+	}
+
+	nameView := m.nameInput.View()
+	descriptionView := m.descriptionInput.View()
+
+	return nameView + "\n" + descriptionView
 }
 
 func (m *MemoryGroupCreate) SetSize(width, height int) {
-	//TODO implement me
-	panic("implement me")
+	m.width = width
+	m.height = height
 }
 
 func (m *MemoryGroupCreate) GetWidth() int {
-	//TODO implement me
-	panic("implement me")
+	return utils.CalcRatio(m.width, 1)
 }
 
 func (m *MemoryGroupCreate) GetHeight() int {
-	//TODO implement me
-	panic("implement me")
+	return utils.CalcRatio(m.height, 1)
 }

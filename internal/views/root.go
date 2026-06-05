@@ -9,7 +9,7 @@ import (
 	"github.com/megalypse/memory_cli/internal/components"
 )
 
-var getRootInstance = sync.OnceValue(func() *Root {
+var GetRootInstance = sync.OnceValue(func() *Root {
 	root := &Root{}
 	return root
 })
@@ -60,6 +60,10 @@ func (r *Root) View() string {
 
 func (r *Root) PushRoute(route View) (View, tea.Cmd) {
 	cmd := route.Init()
+
+	r.stack = append(r.stack, r.route)
+	r.route = route
+
 	return route, cmd
 }
 

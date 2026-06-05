@@ -26,9 +26,9 @@ func (m *memoryGroupFooter) Init() tea.Cmd {
 	}
 
 	cursor.KeyActions = []components.OnKeyFn{
-		components.OnKeys(func() (tea.Model, tea.Cmd) {
+		components.OnKey("a", func() (tea.Model, tea.Cmd) {
 			return nil, msgs.PublishMessage(msgs.NewGroup{})
-		}, "a"),
+		}),
 		components.OnKeys(func() (tea.Model, tea.Cmd) {
 			return nil, nil
 		}, "e"),
