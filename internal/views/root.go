@@ -1,11 +1,18 @@
 package views
 
 import (
+	"sync"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/common-nighthawk/go-figure"
 	"github.com/megalypse/memory_cli/internal/components"
 )
+
+var getRootInstance = sync.OnceValue(func() *Root {
+	root := &Root{}
+	return root
+})
 
 type Root struct {
 	route  View
@@ -16,7 +23,9 @@ type Root struct {
 
 func (r *Root) Init() tea.Cmd {
 	if r.route == nil {
-		return r.PushRoute(&MemoryGroup{})
+		var cmd tea.Cmd
+		r.route, cmd = r.PushRoute(&MemoryGroup{})
+		return cmd
 	}
 
 	return nil
@@ -49,15 +58,14 @@ func (r *Root) View() string {
 	return lipgloss.JoinVertical(lipgloss.Center, title, r.route.View())
 }
 
-func (r *Root) PushRoute(route View) tea.Cmd {
+func (r *Root) PushRoute(route View) (View, tea.Cmd) {
 	cmd := route.Init()
-	r.route = route
-	return cmd
+	return route, cmd
 }
 
-func (r *Root) PopRoute() tea.Cmd {
+func (r *Root) PopRoute() (View, tea.Cmd) {
 	if len(r.stack) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	newRoute := r.stack[len(r.stack)-1]

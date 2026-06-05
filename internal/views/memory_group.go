@@ -73,6 +73,8 @@ func (m *MemoryGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmdList []tea.Cmd
 
 	switch msg.(type) {
+	case msgs.NewGroup:
+		return getRootInstance().PushRoute(&MemoryGroupCreate{})
 	case msgs.UpdateGroups:
 		return m, m.updateGroups()
 	case msgs.DeleteGroup:

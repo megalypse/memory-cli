@@ -26,13 +26,13 @@ func (m *memoryGroupFooter) Init() tea.Cmd {
 	}
 
 	cursor.KeyActions = []components.OnKeyFn{
-		components.OnKey(func() (tea.Model, tea.Cmd) {
-			return nil, nil
+		components.OnKeys(func() (tea.Model, tea.Cmd) {
+			return nil, msgs.PublishMessage(msgs.NewGroup{})
 		}, "a"),
-		components.OnKey(func() (tea.Model, tea.Cmd) {
+		components.OnKeys(func() (tea.Model, tea.Cmd) {
 			return nil, nil
 		}, "e"),
-		components.OnKey(func() (tea.Model, tea.Cmd) {
+		components.OnKeys(func() (tea.Model, tea.Cmd) {
 			if GetLastPressedKey() == "d" {
 				SetLastPressedKey("")
 
