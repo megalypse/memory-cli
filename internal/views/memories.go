@@ -5,6 +5,7 @@ import (
 )
 
 type Memories struct {
+	memoryGroupId int
 	width, height int
 }
 
