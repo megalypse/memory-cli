@@ -89,17 +89,21 @@ func (m *MemoryCreate) View() string {
 		return ""
 	}
 
+	body := lipgloss.PlaceVertical(
+		m.GetHeight()-m.footer.GetHeight(),
+		lipgloss.Center,
+		m.nameInput.View()+components.LineBreak+m.contentInput.View(),
+	)
+
 	return lipgloss.JoinVertical(
 		lipgloss.Center,
-		lipgloss.PlaceVertical(
-			m.GetHeight(),
-			lipgloss.Center,
-			m.nameInput.View()+components.LineBreak+m.contentInput.View()),
-		lipgloss.PlaceVertical(
-			m.footer.GetHeight(),
-			lipgloss.Center,
-			m.footer.View()),
+		body,
+		m.footer.View(),
 	)
+}
+
+func (m *MemoryCreate) RenderFooter() string {
+	return m.footer.View()
 }
 
 func (m *MemoryCreate) SetSize(width, height int) {

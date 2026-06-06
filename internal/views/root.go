@@ -57,7 +57,33 @@ func (r *Root) View() string {
 	r.resizeCurrentRoute()
 	title := r.getTitle()
 
-	return lipgloss.JoinVertical(lipgloss.Center, title, r.route.View())
+	// Usar as proporções padrões do projeto:
+	// - Título ocupa 10% da altura
+	// - Rodapé ocupa 10% da altura
+	// - Corpo ocupa o restante (80%)
+
+	bodyHeight := r.route.GetHeight()
+	footerHeight := int(float64(bodyHeight) * 0.1)
+	bodyHeight = bodyHeight - footerHeight
+
+	body := lipgloss.PlaceVertical(
+		bodyHeight,
+		lipgloss.Center,
+		r.route.View(),
+	)
+
+	footer := lipgloss.PlaceVertical(
+		footerHeight,
+		lipgloss.Center,
+		r.route.RenderFooter(),
+	)
+
+	return lipgloss.JoinVertical(
+		lipgloss.Center,
+		title,
+		body,
+		footer,
+	)
 }
 
 func (r *Root) PushRoute(route View) (View, tea.Cmd) {

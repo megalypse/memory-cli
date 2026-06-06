@@ -103,11 +103,21 @@ func (m *Memories) View() string {
 	}
 	m.cursor.Items = items
 
+	body := lipgloss.PlaceVertical(
+		m.GetHeight()-m.footer.GetHeight(),
+		lipgloss.Center,
+		m.cursor.View(),
+	)
+
 	return lipgloss.JoinVertical(
 		lipgloss.Center,
-		lipgloss.PlaceVertical(m.GetHeight(), lipgloss.Center, m.cursor.View()),
-		lipgloss.PlaceVertical(m.footer.GetHeight(), lipgloss.Center, m.footer.View()),
+		body,
+		m.footer.View(),
 	)
+}
+
+func (m *Memories) RenderFooter() string {
+	return m.footer.View()
 }
 
 func (m *Memories) SetSize(width, height int) {

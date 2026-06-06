@@ -57,14 +57,20 @@ func (m *MemoryDetails) View() string {
 		m.footer.View(),
 	)
 
+	bodyHeight := m.GetHeight() - m.footer.GetHeight()
+
 	return lipgloss.JoinVertical(
 		lipgloss.Center,
 		lipgloss.PlaceVertical(
-			m.GetHeight(),
+			bodyHeight,
 			lipgloss.Center,
 			body),
 		footer,
 	)
+}
+
+func (m *MemoryDetails) RenderFooter() string {
+	return m.footer.View()
 }
 
 func (m *MemoryDetails) SetSize(width, height int) {

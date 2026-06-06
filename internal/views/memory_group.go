@@ -144,9 +144,19 @@ func (m *MemoryGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *MemoryGroup) View() string {
+	body := lipgloss.PlaceVertical(
+		m.GetHeight()-m.footer.GetHeight(),
+		lipgloss.Center,
+		m.groupsCursor.View(),
+	)
+
 	return lipgloss.JoinVertical(
 		lipgloss.Center,
-		lipgloss.PlaceVertical(m.GetHeight(), lipgloss.Center, m.groupsCursor.View()),
-		lipgloss.PlaceVertical(m.footer.GetHeight(), lipgloss.Center, m.footer.View()),
+		body,
+		m.footer.View(),
 	)
+}
+
+func (m *MemoryGroup) RenderFooter() string {
+	return m.footer.View()
 }

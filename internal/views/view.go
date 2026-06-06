@@ -8,4 +8,5 @@ type View interface {
 	SetSize(width, height int)
 	GetWidth() int
 	GetHeight() int
+	RenderFooter() string
 }

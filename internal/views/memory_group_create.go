@@ -85,14 +85,21 @@ func (m *MemoryGroupCreate) View() string {
 		return ""
 	}
 
+	body := lipgloss.PlaceVertical(
+		m.GetHeight()-m.footer.GetHeight(),
+		lipgloss.Center,
+		m.nameInput.View()+components.LineBreak+m.descriptionInput.View(),
+	)
+
 	return lipgloss.JoinVertical(
 		lipgloss.Center,
-		lipgloss.PlaceVertical(
-			m.GetHeight(),
-			lipgloss.Center,
-			m.nameInput.View()+components.LineBreak+m.descriptionInput.View()),
+		body,
 		m.footer.View(),
 	)
+}
+
+func (m *MemoryGroupCreate) RenderFooter() string {
+	return m.footer.View()
 }
 
 func (m *MemoryGroupCreate) SetSize(width, height int) {
