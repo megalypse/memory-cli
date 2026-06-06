@@ -115,14 +115,6 @@ func (m *Memories) SetSize(width, height int) {
 	m.footer.SetSize(width, height)
 }
 
-func (m *Memories) GetWidth() int {
-	return m.width
-}
-
-func (m *Memories) GetHeight() int {
-	return m.height
-}
-
 func (m *Memories) loadMemories() tea.Msg {
 	memories, err := m.repository.GetAllByGroup(context.Background(), m.memoryGroupId)
 	if err != nil {

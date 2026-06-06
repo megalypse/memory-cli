@@ -15,13 +15,6 @@ func SetHeight(h int) {
 	height = h
 }
 
-func GetHeight() int {
-	heightMu.Lock()
-	defer heightMu.Unlock()
-
-	return height
-}
-
 func SetWidth(w int) {
 	widthMu.Lock()
 	defer widthMu.Unlock()
@@ -29,17 +22,16 @@ func SetWidth(w int) {
 	width = w
 }
 
-func GetWidth() int {
+func GetWidthRatio(ratio float64) int {
 	widthMu.Lock()
 	defer widthMu.Unlock()
 
-	return width
-}
-
-func GetWidthRatio(ratio float64) int {
-	return int(float64(GetWidth()) * ratio)
+	return int(float64(width) * ratio)
 }
 
 func GetHeightRatio(ratio float64) int {
-	return int(float64(GetHeight()) * ratio)
+	heightMu.Lock()
+	defer heightMu.Unlock()
+
+	return int(float64(height) * ratio)
 }

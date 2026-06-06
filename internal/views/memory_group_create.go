@@ -10,7 +10,6 @@ import (
 	"github.com/megalypse/memory_cli/internal/components"
 	"github.com/megalypse/memory_cli/internal/memorygroup"
 	"github.com/megalypse/memory_cli/internal/msgs"
-	"github.com/megalypse/memory_cli/internal/utils"
 )
 
 func NewMemoryGroupCreate() View {
@@ -96,12 +95,4 @@ func (m *MemoryGroupCreate) SetSize(width, height int) {
 	m.height = height
 
 	m.footer.SetSize(m.width, m.height)
-}
-
-func (m *MemoryGroupCreate) GetWidth() int {
-	return utils.CalcRatio(m.width, 1)
-}
-
-func (m *MemoryGroupCreate) GetHeight() int {
-	return utils.CalcRatio(m.height, 0.9)
 }

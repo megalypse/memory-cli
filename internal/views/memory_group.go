@@ -23,8 +23,6 @@ type MemoryGroup struct {
 func (m *MemoryGroup) SetSize(width, height int) {
 	m.width = width
 	m.height = height
-	m.widthRatio = 1
-	m.heightRatio = 0.9
 
 	m.footer.SetSize(width, height)
 }

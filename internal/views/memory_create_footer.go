@@ -1,9 +1,6 @@
 package views
 
-import (
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/megalypse/memory_cli/internal/utils"
-)
+import tea "github.com/charmbracelet/bubbletea"
 
 func newMemoryCreateFooter() *memoryCreateFooter {
 	return &memoryCreateFooter{
@@ -48,12 +45,4 @@ func (m *memoryCreateFooter) SetSize(width, height int) {
 
 	m.footerEditMode.SetSize(width, height)
 	m.footerCmdMode.SetSize(width, height)
-}
-
-func (m *memoryCreateFooter) GetWidth() int {
-	return utils.CalcRatio(m.width, 1)
-}
-
-func (m *memoryCreateFooter) GetHeight() int {
-	return utils.CalcRatio(m.height, 0.1)
 }

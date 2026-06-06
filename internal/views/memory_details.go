@@ -6,7 +6,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/megalypse/go-cli-components/clicomponents"
 	"github.com/megalypse/memory_cli/internal/memory"
-	"github.com/megalypse/memory_cli/internal/utils"
 )
 
 type MemoryDetails struct {
@@ -62,12 +61,4 @@ func (m *MemoryDetails) SetSize(width, height int) {
 	m.height = height
 
 	m.footer.SetSize(m.width, m.height)
-}
-
-func (m *MemoryDetails) GetWidth() int {
-	return utils.CalcRatio(m.width, 1)
-}
-
-func (m *MemoryDetails) GetHeight() int {
-	return utils.CalcRatio(m.height, 0.9)
 }
