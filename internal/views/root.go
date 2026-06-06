@@ -78,8 +78,9 @@ func (r *Root) PopRoute() (View, tea.Cmd) {
 
 	newRoute := r.stack[len(r.stack)-1]
 	r.stack = r.stack[:len(r.stack)-1]
+	r.route = newRoute
 
-	return r.PushRoute(newRoute)
+	return nil, nil
 }
 
 func (r *Root) resizeCurrentRoute() {

@@ -42,7 +42,10 @@ func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "q", "esc":
+		case "esc":
+			return GetRootInstance().PopRoute()
+
+		case "q":
 			return m, tea.Quit
 		case "enter":
 			if len(m.memories) > 0 && m.cursor.Cursor < len(m.memories) {
