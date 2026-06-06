@@ -3,6 +3,7 @@ package views
 import (
 	"context"
 	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/megalypse/memory_cli/internal/memory"
 )
