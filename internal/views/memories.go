@@ -28,16 +28,14 @@ func NewMemories(groupId int) *Memories {
 		cursor: &clicomponents.CursorList{
 			RenderSize: 10,
 		},
-		footer: &memoriesFooter{
-			Options: &clicomponents.CursorList{
-				Items: []string{"(n) Nova memória", "(e) Editar", "(d -> y) Deletar"},
-			},
-		},
+		footer: newMemoriesFooter(groupId),
 	}
 }
 
 func (m *Memories) Init() tea.Cmd {
-	return m.loadMemories
+	return func() tea.Msg {
+		return m.loadMemories()
+	}
 }
 
 func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -52,17 +50,21 @@ func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 	case msgs.NewMemory:
-		// Handle creating a new memory - this will be triggered by footer action
-		return m, m.loadMemories
+		// Handle creating a new memory - this will be triggered by header action
+		return m, func() tea.Msg {
+			return m.loadMemories()
+		}
 	case msgs.EditMemory:
-		// Handle editing a memory - this will be triggered by footer action
+		// Handle editing a memory - this will be triggered by header action
 		if len(m.memories) > 0 && m.cursor.Cursor < len(m.memories) {
 			return m, nil // Would typically open edit view in real implementation
 		}
 	case msgs.DeleteMemory:
-		// Handle deleting a memory - this will be triggered by footer action
+		// Handle deleting a memory - this will be triggered by header action
 		if len(m.memories) > 0 && m.cursor.Cursor < len(m.memories) {
-			return m, m.loadMemories // Reload to reflect deletion
+			return m, func() tea.Msg {
+				return m.loadMemories()
+			} // Reload to reflect deletion
 		}
 	}
 
@@ -72,7 +74,7 @@ func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return model, cmd
 	}
 
-	// Handle footer updates
+	// Handle footer updates (agora usando o novo tipo memoriesFooter)
 	model, cmd = m.footer.Update(msg)
 	if model != nil {
 		return model, cmd

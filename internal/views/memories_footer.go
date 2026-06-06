@@ -1,61 +1,58 @@
 package views
 
 import (
-	"strings"
+	"context"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/megalypse/go-cli-components/clicomponents"
-	"github.com/megalypse/memory_cli/internal/components"
+	"github.com/megalypse/memory_cli/internal/memory"
 	"github.com/megalypse/memory_cli/internal/msgs"
-	"github.com/megalypse/memory_cli/internal/utils"
 )
 
 type memoriesFooter struct {
-	base
-
-	Options *clicomponents.CursorList
+	*footer
+	repository memory.Repository
+	memories   []*memory.Memory
+	cursor     *clicomponents.CursorList
 }
 
-func (m *memoriesFooter) Init() tea.Cmd {
+func newMemoriesFooter(groupId int) *memoriesFooter {
+	return &memoriesFooter{
+		footer: &footer{
+			Options: &clicomponents.CursorList{
+				Items: []string{"(n) Nova memória", "(e) Editar", "(d -> y) Deletar"},
+				KeyActions: []clicomponents.OnKeyFn{
+					clicomponents.OnKeys(func() (tea.Model, tea.Cmd) {
+						return nil, msgs.PublishMessage(msgs.NewMemory{})
+					}, "n"),
+					clicomponents.OnKeys(func() (tea.Model, tea.Cmd) {
+						return nil, msgs.PublishMessage(msgs.EditMemory{})
+					}, "e"),
+					clicomponents.OnKeys(func() (tea.Model, tea.Cmd) {
+						return nil, msgs.PublishMessage(msgs.DeleteMemory{})
+					}, "d"),
+				},
+			},
+		},
+		repository: memory.GetRepositorySqlLite(nil),
+	}
+}
+
+func (m *memoriesFooter) loadMemories() tea.Msg {
+	memories, err := m.repository.GetAllByGroup(context.Background(), 1) // Fixar groupId por enquanto
+	if err != nil {
+		return nil
+	}
+
+	m.memories = memories
 	return nil
 }
 
 func (m *memoriesFooter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// Handle key actions specifically for this footer
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "n":
-			// Handle adding a new memory
-			return m, msgs.PublishMessage(msgs.NewMemory{})
-		case "e":
-			// Handle editing - this is just a placeholder in footer; main view will handle actual editing logic
-			return m, msgs.PublishMessage(msgs.EditMemory{})
-		case "d":
-			// Handle deleting - this is just a placeholder in footer; main view will handle actual deletion logic
-			return m, msgs.PublishMessage(msgs.DeleteMemory{})
-		}
+	model, cmd := m.footer.Update(msg)
+	if model != nil {
+		return model, cmd
 	}
 
-	model, cmd := m.Options.Update(msg)
-	return model, cmd
-}
-
-func (m *memoriesFooter) View() string {
-	cellWidth := m.width / len(m.Options.Items)
-
-	optionsBuilder := strings.Builder{}
-
-	for i := range m.Options.Items {
-		option := lipgloss.PlaceHorizontal(cellWidth, lipgloss.Center, m.Options.Items[i])
-		optionsBuilder.WriteString(option)
-	}
-
-	style := lipgloss.NewStyle().Background(components.ColorMain).Foreground(components.ColorMainContrast)
-	return style.Render(optionsBuilder.String())
-}
-
-func (m *memoriesFooter) SetSize(width, height int) {
-	m.base.SetSize(utils.CalcRatio(width, 1), utils.CalcRatio(height, 0.1))
+	return m, nil
 }
