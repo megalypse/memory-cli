@@ -9,14 +9,18 @@ import (
 
 var (
 	repositoryInstance *RepositorySqlLite
-	repositoryOnce     sync.Once
+	repositoryMu       sync.RWMutex
 )
 
 func GetRepositorySqlLite(db *sql.DB) Repository {
-	repositoryOnce.Do(func() {
+	if db != nil {
+		repositoryMu.Lock()
 		repositoryInstance = &RepositorySqlLite{db: db}
-	})
+		repositoryMu.Unlock()
+	}
 
+	repositoryMu.RLock()
+	defer repositoryMu.RUnlock()
 	return repositoryInstance
 }
 

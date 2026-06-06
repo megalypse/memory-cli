@@ -3,15 +3,23 @@ package memorygroup
 import (
 	"context"
 	"database/sql"
+	"sync"
 )
 
-var repositorySqlLite RepositoryMemoryGroup
+var (
+	repositorySqlLite RepositoryMemoryGroup
+	repositoryMu      sync.RWMutex
+)
 
 func GetRepositorySqlLite(db *sql.DB) RepositoryMemoryGroup {
-	if repositorySqlLite == nil {
+	if db != nil {
+		repositoryMu.Lock()
 		repositorySqlLite = &RepositorySqlLite{db: db}
+		repositoryMu.Unlock()
 	}
 
+	repositoryMu.RLock()
+	defer repositoryMu.RUnlock()
 	return repositorySqlLite
 }
 
