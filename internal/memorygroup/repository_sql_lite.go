@@ -7,7 +7,7 @@ import (
 
 var repositorySqlLite RepositoryMemoryGroup
 
-func NewRepositorySqlLite(db *sql.DB) RepositoryMemoryGroup {
+func GetRepositorySqlLite(db *sql.DB) RepositoryMemoryGroup {
 	if repositorySqlLite == nil {
 		repositorySqlLite = &RepositorySqlLite{db: db}
 	}

@@ -32,12 +32,13 @@ func (r *Root) Init() tea.Cmd {
 }
 
 func (r *Root) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	r.resizeCurrentRoute()
+
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
 		r.width = msg.Width
 		r.height = msg.Height
-		r.resizeCurrentRoute()
 	}
 
 	_, cmd := r.route.Update(msg)

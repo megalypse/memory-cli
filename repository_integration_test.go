@@ -21,7 +21,7 @@ import (
 func TestMemoryGroupRepositoryIntegration(t *testing.T) {
 	ctx := context.Background()
 	db := newIntegrationDB(t, ctx)
-	repository := memorygroup.NewRepositorySqlLite(db)
+	repository := memorygroup.GetRepositorySqlLite(db)
 
 	err := repository.Create(ctx, &memorygroup.MemoryGroup{
 		Name:        "work",
@@ -57,7 +57,7 @@ func TestMemoryGroupRepositoryIntegration(t *testing.T) {
 func TestMemoryRepositoryIntegration(t *testing.T) {
 	ctx := context.Background()
 	db := newIntegrationDB(t, ctx)
-	groupRepository := memorygroup.NewRepositorySqlLite(db)
+	groupRepository := memorygroup.GetRepositorySqlLite(db)
 	memoryRepository := memory.NewRepositorySqlLite(db)
 
 	group := createGroup(t, ctx, groupRepository, "engineering")

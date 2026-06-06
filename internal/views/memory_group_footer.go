@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/megalypse/go-cli-components/clicomponents"
 	components2 "github.com/megalypse/memory_cli/internal/components"
+	"github.com/megalypse/memory_cli/internal/utils"
 )
 
 type footer struct {
@@ -16,9 +17,6 @@ type footer struct {
 }
 
 func (m *footer) Init() tea.Cmd {
-	m.widthRatio = 1
-	m.heightRatio = 0.1
-
 	return nil
 }
 
@@ -41,5 +39,5 @@ func (m *footer) View() string {
 }
 
 func (m *footer) SetSize(width, height int) {
-	m.base.SetSize(width, height)
+	m.base.SetSize(utils.CalcRatio(width, 1), utils.CalcRatio(height, 0.1))
 }

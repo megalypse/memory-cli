@@ -63,7 +63,7 @@ func (m *MemoryGroup) Init() tea.Cmd {
 		RenderSize: 3,
 	}
 
-	m.repository = memorygroup.NewRepositorySqlLite(nil)
+	m.repository = memorygroup.GetRepositorySqlLite(nil)
 	m.updateGroups()
 
 	return nil

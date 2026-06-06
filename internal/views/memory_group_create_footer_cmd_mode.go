@@ -18,7 +18,7 @@ func newMemoryGroupCreateFooterCmdMode() *footer {
 					return nil, msgs.PublishMessage(msgs.SaveGroup{})
 				}),
 				clicomponents.OnKey("esc", func() (tea.Model, tea.Cmd) {
-					return nil, msgs.PublishMessage(msgs.CancelGroup{})
+					return GetRootInstance().PopRoute()
 				}),
 			},
 		},
