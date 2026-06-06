@@ -16,7 +16,8 @@ type Memories struct {
 	err           error
 }
 
-func NewMemories(groupId int, repo memory.Repository) *Memories {
+func NewMemories(groupId int) *Memories {
+	repo := memory.NewRepositorySqlLite(nil)
 	return &Memories{
 		memoryGroupId: groupId,
 		repository:    repo,

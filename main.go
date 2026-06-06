@@ -5,6 +5,7 @@ import (
 
 	"github.com/megalypse/memory_cli/cmd/cli"
 	db2 "github.com/megalypse/memory_cli/factory/db"
+	"github.com/megalypse/memory_cli/internal/memory"
 	"github.com/megalypse/memory_cli/internal/memorygroup"
 	"github.com/pressly/goose/v3"
 )
@@ -28,6 +29,7 @@ func startup() error {
 	}
 
 	_ = memorygroup.GetRepositorySqlLite(db)
+	_ = memory.NewRepositorySqlLite(db)
 
 	if err := goose.SetDialect("sqlite3"); err != nil {
 		return err

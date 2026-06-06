@@ -54,6 +54,16 @@ func (m *MemoryGroup) Init() tea.Cmd {
 
 			return nil, nil
 		}, "y"),
+		clicomponents.OnKey("enter", func() (tea.Model, tea.Cmd) {
+			if len(m.groups) == 0 {
+				return m, nil
+			}
+
+			group := m.groups[m.groupsCursor.Cursor]
+			newRoute := NewMemories(group.ID)
+			newRoute.SetSize(m.width, m.height)
+			return GetRootInstance().PushRoute(newRoute)
+		}),
 	}
 
 	m.footer.Options = cursor
