@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/megalypse/go-cli-components/clicomponents"
 	"github.com/megalypse/memory_cli/internal/memory"
 )
 
@@ -14,6 +15,7 @@ type Memories struct {
 	memories      []*memory.Memory
 	repository    memory.Repository
 	err           error
+	cursor        *clicomponents.CursorList
 }
 
 func NewMemories(groupId int) *Memories {
@@ -21,6 +23,9 @@ func NewMemories(groupId int) *Memories {
 	return &Memories{
 		memoryGroupId: groupId,
 		repository:    repository,
+		cursor: &clicomponents.CursorList{
+			RenderSize: 10,
+		},
 	}
 }
 
@@ -34,7 +39,17 @@ func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q", "esc":
 			return m, tea.Quit
+		case "enter":
+			// When enter is pressed, show the full memory content in a new view or window
+			// For now we'll just return nil to indicate no change in model
+			return m, nil
 		}
+	}
+
+	// Handle cursor list updates
+	model, cmd := m.cursor.Update(msg)
+	if model != nil {
+		return model, cmd
 	}
 
 	return m, nil
@@ -49,21 +64,22 @@ func (m *Memories) View() string {
 		return "No memories found for this group."
 	}
 
-	var result string
+	// Create items for the cursor list
+	items := make([]string, len(m.memories))
 	for i, memory := range m.memories {
-		result += fmt.Sprintf("[%d] %s\n", i+1, memory.Name)
-		if memory.Content != "" {
-			result += fmt.Sprintf("   %s\n", memory.Content)
-		}
-		result += "\n"
+		items[i] = fmt.Sprintf("[%d] %s", i+1, memory.Name)
 	}
+	m.cursor.Items = items
 
-	return result
+	// Render with cursor
+	return m.cursor.View()
 }
 
 func (m *Memories) SetSize(width, height int) {
 	m.width = width
 	m.height = height
+	// Since we're using a CursorList that handles scrolling internally,
+	// we don't need to set a specific Height here
 }
 
 func (m *Memories) GetWidth() int {
