@@ -55,21 +55,18 @@ func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 	case msgs.NewMemory:
-		// Handle creating a new memory - this will be triggered by header action
 		return m, func() tea.Msg {
 			return m.loadMemories()
 		}
 	case msgs.EditMemory:
-		// Handle editing a memory - this will be triggered by header action
 		if len(m.memories) > 0 && m.cursor.Cursor < len(m.memories) {
-			return m, nil // Would typically open edit view in real implementation
+			return m, nil
 		}
 	case msgs.DeleteMemory:
-		// Handle deleting a memory - this will be triggered by header action
 		if len(m.memories) > 0 && m.cursor.Cursor < len(m.memories) {
 			return m, func() tea.Msg {
 				return m.loadMemories()
-			} // Reload to reflect deletion
+			}
 		}
 	}
 

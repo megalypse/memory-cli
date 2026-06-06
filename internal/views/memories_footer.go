@@ -1,8 +1,6 @@
 package views
 
 import (
-	"context"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/megalypse/go-cli-components/clicomponents"
 	"github.com/megalypse/memory_cli/internal/memory"
@@ -36,16 +34,6 @@ func newMemoriesFooter(groupId int) *memoriesFooter {
 		},
 		repository: memory.GetRepositorySqlLite(nil),
 	}
-}
-
-func (m *memoriesFooter) loadMemories() tea.Msg {
-	memories, err := m.repository.GetAllByGroup(context.Background(), 1) // Fixar groupId por enquanto
-	if err != nil {
-		return nil
-	}
-
-	m.memories = memories
-	return nil
 }
 
 func (m *memoriesFooter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

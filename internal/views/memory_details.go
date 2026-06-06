@@ -27,7 +27,6 @@ func (m *MemoryDetails) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if msg.String() == "esc" || msg.String() == "q" {
-			// Directly pop the route using root singleton method as requested
 			return GetRootInstance().PopRoute()
 		}
 	}

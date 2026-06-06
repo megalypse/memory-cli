@@ -10,7 +10,6 @@ import (
 	"github.com/megalypse/memory_cli/internal/utils"
 )
 
-// footer é uma implementação genérica de rodapé para views
 type footer struct {
 	base
 
