@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/megalypse/go-cli-components/clicomponents"
 	"github.com/megalypse/memory_cli/internal/memory"
 	"github.com/megalypse/memory_cli/internal/msgs"
@@ -103,17 +102,7 @@ func (m *Memories) View() string {
 	}
 	m.cursor.Items = items
 
-	body := lipgloss.PlaceVertical(
-		m.GetHeight()-m.footer.GetHeight(),
-		lipgloss.Center,
-		m.cursor.View(),
-	)
-
-	return lipgloss.JoinVertical(
-		lipgloss.Center,
-		body,
-		m.footer.View(),
-	)
+	return m.cursor.View()
 }
 
 func (m *Memories) RenderFooter() string {

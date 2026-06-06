@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/common-nighthawk/go-figure"
 	"github.com/megalypse/memory_cli/internal/components"
+	"github.com/megalypse/memory_cli/internal/utils"
 )
 
 var GetRootInstance = sync.OnceValue(func() *Root {
@@ -55,16 +56,18 @@ func (r *Root) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (r *Root) View() string {
 	r.resizeCurrentRoute()
+	screenHeight := r.height
+
 	title := r.getTitle()
+	_, titleHeight := lipgloss.Size(title)
+	footerHeight := utils.CalcRatio(screenHeight, 0.1)
+	bodyHeight := screenHeight - footerHeight - titleHeight
 
-	// Usar as proporções padrões do projeto:
-	// - Título ocupa 10% da altura
-	// - Rodapé ocupa 10% da altura
-	// - Corpo ocupa o restante (80%)
-
-	bodyHeight := r.route.GetHeight()
-	footerHeight := int(float64(bodyHeight) * 0.1)
-	bodyHeight = bodyHeight - footerHeight
+	title = lipgloss.PlaceVertical(
+		titleHeight,
+		lipgloss.Center,
+		title,
+	)
 
 	body := lipgloss.PlaceVertical(
 		bodyHeight,
@@ -74,7 +77,7 @@ func (r *Root) View() string {
 
 	footer := lipgloss.PlaceVertical(
 		footerHeight,
-		lipgloss.Center,
+		lipgloss.Bottom,
 		r.route.RenderFooter(),
 	)
 

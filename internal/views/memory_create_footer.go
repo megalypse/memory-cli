@@ -2,19 +2,24 @@ package views
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/megalypse/memory_cli/internal/msgs"
 	"github.com/megalypse/memory_cli/internal/utils"
 )
 
-type memoryCreateFooter struct {
-	width, height int
-	editMode      bool
-}
-
 func newMemoryCreateFooter() *memoryCreateFooter {
 	return &memoryCreateFooter{
-		editMode: true,
+		footerEditMode: newMemoryCreateFooterEditMode(),
+		footerCmdMode:  newMemoryCreateFooterCmdMode(),
+		editMode:       true,
 	}
+}
+
+type memoryCreateFooter struct {
+	base
+
+	footerEditMode *footer
+	footerCmdMode  *footer
+
+	editMode bool
 }
 
 func (m *memoryCreateFooter) Init() tea.Cmd {
@@ -22,32 +27,27 @@ func (m *memoryCreateFooter) Init() tea.Cmd {
 }
 
 func (m *memoryCreateFooter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "enter":
-			if !m.editMode {
-				return m, nil
-			}
-		case "esc":
-			return m, msgs.PublishMessage(msgs.CancelCreate{})
-		}
+	if m.editMode {
+		return m.footerEditMode.Update(msg)
 	}
 
-	return m, nil
+	return m.footerCmdMode.Update(msg)
 }
 
 func (m *memoryCreateFooter) View() string {
 	if m.editMode {
-		return "Press ENTER to save, ESC to cancel"
+		return m.footerEditMode.View()
 	}
 
-	return "Press ENTER to create, ESC to cancel"
+	return m.footerCmdMode.View()
 }
 
 func (m *memoryCreateFooter) SetSize(width, height int) {
 	m.width = width
 	m.height = height
+
+	m.footerEditMode.SetSize(width, height)
+	m.footerCmdMode.SetSize(width, height)
 }
 
 func (m *memoryCreateFooter) GetWidth() int {

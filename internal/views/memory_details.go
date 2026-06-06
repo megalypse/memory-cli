@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/megalypse/go-cli-components/clicomponents"
 	"github.com/megalypse/memory_cli/internal/memory"
 	"github.com/megalypse/memory_cli/internal/utils"
@@ -51,22 +50,7 @@ func (m *MemoryDetails) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *MemoryDetails) View() string {
 	body := fmt.Sprintf("Name: %s\nContent: %s", m.memory.Name, m.memory.Content)
 
-	footer := lipgloss.PlaceVertical(
-		m.footer.GetHeight(),
-		lipgloss.Center,
-		m.footer.View(),
-	)
-
-	bodyHeight := m.GetHeight() - m.footer.GetHeight()
-
-	return lipgloss.JoinVertical(
-		lipgloss.Center,
-		lipgloss.PlaceVertical(
-			bodyHeight,
-			lipgloss.Center,
-			body),
-		footer,
-	)
+	return body
 }
 
 func (m *MemoryDetails) RenderFooter() string {

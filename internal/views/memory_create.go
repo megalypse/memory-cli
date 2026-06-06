@@ -6,7 +6,6 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/megalypse/go-cli-components/clicomponents"
 	"github.com/megalypse/memory_cli/internal/components"
 	"github.com/megalypse/memory_cli/internal/memory"
@@ -89,17 +88,7 @@ func (m *MemoryCreate) View() string {
 		return ""
 	}
 
-	body := lipgloss.PlaceVertical(
-		m.GetHeight()-m.footer.GetHeight(),
-		lipgloss.Center,
-		m.nameInput.View()+components.LineBreak+m.contentInput.View(),
-	)
-
-	return lipgloss.JoinVertical(
-		lipgloss.Center,
-		body,
-		m.footer.View(),
-	)
+	return m.nameInput.View() + components.LineBreak + m.contentInput.View()
 }
 
 func (m *MemoryCreate) RenderFooter() string {

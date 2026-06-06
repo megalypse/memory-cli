@@ -4,7 +4,6 @@ import (
 	"context"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/megalypse/go-cli-components/clicomponents"
 	"github.com/megalypse/memory_cli/internal/memorygroup"
 	"github.com/megalypse/memory_cli/internal/msgs"
@@ -144,17 +143,7 @@ func (m *MemoryGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *MemoryGroup) View() string {
-	body := lipgloss.PlaceVertical(
-		m.GetHeight()-m.footer.GetHeight(),
-		lipgloss.Center,
-		m.groupsCursor.View(),
-	)
-
-	return lipgloss.JoinVertical(
-		lipgloss.Center,
-		body,
-		m.footer.View(),
-	)
+	return m.groupsCursor.View()
 }
 
 func (m *MemoryGroup) RenderFooter() string {
