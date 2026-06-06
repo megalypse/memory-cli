@@ -70,13 +70,11 @@ func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// Handle cursor list updates
 	model, cmd := m.cursor.Update(msg)
 	if model != nil {
 		return model, cmd
 	}
 
-	// Handle footer updates (agora usando o novo tipo memoriesFooter)
 	model, cmd = m.footer.Update(msg)
 	if model != nil {
 		return model, cmd
@@ -90,17 +88,14 @@ func (m *Memories) View() string {
 		return fmt.Sprintf("Error loading memories: %v", m.err)
 	}
 
-	// Create items for the cursor list
 	items := make([]string, len(m.memories))
 	for i, memory := range m.memories {
 		items[i] = fmt.Sprintf("[%d] %s", i+1, memory.Name)
 	}
 	m.cursor.Items = items
 
-	// Render with cursor
 	content := m.cursor.View()
 
-	// Add footer if present
 	if m.footer != nil {
 		footer := m.footer.View()
 		return fmt.Sprintf("%s\n%s", content, footer)
@@ -113,7 +108,6 @@ func (m *Memories) SetSize(width, height int) {
 	m.width = width
 	m.height = height
 
-	// Configure footer size
 	if m.footer != nil {
 		m.footer.SetSize(width, height)
 	}
