@@ -109,7 +109,6 @@ func (m *MemoryGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case msgs.NewGroup:
 		newRoute := NewMemoryGroupCreate()
-		newRoute.SetSize(m.width, m.height)
 		return GetRootInstance().PushRoute(newRoute)
 	case msgs.UpdateGroups:
 		return m, m.updateGroups()

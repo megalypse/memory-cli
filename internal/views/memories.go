@@ -58,7 +58,6 @@ func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case "n":
 			createView := NewMemoryCreate(m.memoryGroupId)
-			createView.SetSize(m.width, m.height)
 
 			return GetRootInstance().PushRoute(createView)
 		}
