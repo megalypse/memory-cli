@@ -70,7 +70,7 @@ func (m *MemoryGroupCreate) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			Name:        groupName,
 			Description: groupDescription,
 		}); err != nil {
-			return nil, msgs.PublishMessage(msgs.Err{err})
+			return nil, msgs.PublishMessage(msgs.Err{Err: err})
 		}
 
 		_, cmd := GetRootInstance().PopRoute()

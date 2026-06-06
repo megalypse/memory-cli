@@ -13,7 +13,7 @@ import (
 type MemoryGroup struct {
 	base
 
-	groupsCursor *clicomponents.CursorListVertical
+	groupsCursor *clicomponents.CursorList
 	groups       []*memorygroup.MemoryGroup
 
 	footer *footer
@@ -33,7 +33,7 @@ func (m *MemoryGroup) SetSize(width, height int) {
 func (m *MemoryGroup) Init() tea.Cmd {
 	m.footer = &footer{}
 
-	cursor := &clicomponents.CursorListVertical{
+	cursor := &clicomponents.CursorList{
 		Items:      []string{"(a) Add", "(e) Edit", "(d -> y) Delete"},
 		RenderSize: 3,
 	}
@@ -59,7 +59,7 @@ func (m *MemoryGroup) Init() tea.Cmd {
 	m.footer.Options = cursor
 	m.footer.Init()
 
-	m.groupsCursor = &clicomponents.CursorListVertical{
+	m.groupsCursor = &clicomponents.CursorList{
 		RenderSize: 3,
 	}
 

@@ -13,7 +13,7 @@ import (
 type footer struct {
 	base
 
-	Options *clicomponents.CursorListVertical
+	Options *clicomponents.CursorList
 }
 
 func (m *footer) Init() tea.Cmd {

@@ -8,7 +8,7 @@ import (
 
 func newMemoryGroupCreateFooterCmdMode() *footer {
 	return &footer{
-		Options: &clicomponents.CursorListVertical{
+		Options: &clicomponents.CursorList{
 			Items: []string{
 				"(s) Save",
 				"(esc) Cancel",
