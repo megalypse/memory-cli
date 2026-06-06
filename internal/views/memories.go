@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/megalypse/go-cli-components/clicomponents"
 	"github.com/megalypse/memory_cli/internal/memory"
+	"github.com/megalypse/memory_cli/internal/msgs"
 )
 
 type Memories struct {
@@ -16,6 +17,7 @@ type Memories struct {
 	repository    memory.Repository
 	err           error
 	cursor        *clicomponents.CursorList
+	footer        *memoriesFooter
 }
 
 func NewMemories(groupId int) *Memories {
@@ -25,6 +27,11 @@ func NewMemories(groupId int) *Memories {
 		repository:    repository,
 		cursor: &clicomponents.CursorList{
 			RenderSize: 10,
+		},
+		footer: &memoriesFooter{
+			Options: &clicomponents.CursorList{
+				Items: []string{"(n) Nova memória", "(e) Editar", "(d -> y) Deletar"},
+			},
 		},
 	}
 }
@@ -44,10 +51,29 @@ func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// For now we'll just return nil to indicate no change in model
 			return m, nil
 		}
+	case msgs.NewMemory:
+		// Handle creating a new memory - this will be triggered by footer action
+		return m, m.loadMemories
+	case msgs.EditMemory:
+		// Handle editing a memory - this will be triggered by footer action
+		if len(m.memories) > 0 && m.cursor.Cursor < len(m.memories) {
+			return m, nil // Would typically open edit view in real implementation
+		}
+	case msgs.DeleteMemory:
+		// Handle deleting a memory - this will be triggered by footer action
+		if len(m.memories) > 0 && m.cursor.Cursor < len(m.memories) {
+			return m, m.loadMemories // Reload to reflect deletion
+		}
 	}
 
 	// Handle cursor list updates
 	model, cmd := m.cursor.Update(msg)
+	if model != nil {
+		return model, cmd
+	}
+
+	// Handle footer updates
+	model, cmd = m.footer.Update(msg)
 	if model != nil {
 		return model, cmd
 	}
@@ -72,14 +98,25 @@ func (m *Memories) View() string {
 	m.cursor.Items = items
 
 	// Render with cursor
-	return m.cursor.View()
+	content := m.cursor.View()
+
+	// Add footer if present
+	if m.footer != nil {
+		footer := m.footer.View()
+		return fmt.Sprintf("%s\n%s", content, footer)
+	}
+
+	return content
 }
 
 func (m *Memories) SetSize(width, height int) {
 	m.width = width
 	m.height = height
-	// Since we're using a CursorList that handles scrolling internally,
-	// we don't need to set a specific Height here
+
+	// Configure footer size
+	if m.footer != nil {
+		m.footer.SetSize(width, height)
+	}
 }
 
 func (m *Memories) GetWidth() int {
