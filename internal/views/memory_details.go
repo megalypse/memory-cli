@@ -4,18 +4,27 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/megalypse/go-cli-components/clicomponents"
 	"github.com/megalypse/memory_cli/internal/memory"
+	"github.com/megalypse/memory_cli/internal/utils"
 )
 
 type MemoryDetails struct {
 	memory *memory.Memory
 	width  int
 	height int
+	footer *footer
 }
 
 func NewMemoryDetails(mem *memory.Memory) *MemoryDetails {
 	return &MemoryDetails{
 		memory: mem,
+		footer: &footer{
+			Options: &clicomponents.CursorList{
+				Items: []string{"ESC/Q: Return"},
+			},
+		},
 	}
 }
 
@@ -31,22 +40,44 @@ func (m *MemoryDetails) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	model, cmd := m.footer.Update(msg)
+	if model != nil {
+		return model, cmd
+	}
+
 	return m, nil
 }
 
 func (m *MemoryDetails) View() string {
-	return fmt.Sprintf("Name: %s\nContent: %s\n\n[Press ESC or Q to return]", m.memory.Name, m.memory.Content)
+	body := fmt.Sprintf("Name: %s\nContent: %s", m.memory.Name, m.memory.Content)
+
+	footer := lipgloss.PlaceVertical(
+		m.footer.GetHeight(),
+		lipgloss.Center,
+		m.footer.View(),
+	)
+
+	return lipgloss.JoinVertical(
+		lipgloss.Center,
+		lipgloss.PlaceVertical(
+			m.GetHeight(),
+			lipgloss.Center,
+			body),
+		footer,
+	)
 }
 
 func (m *MemoryDetails) SetSize(width, height int) {
 	m.width = width
 	m.height = height
+
+	m.footer.SetSize(m.width, m.height)
 }
 
 func (m *MemoryDetails) GetWidth() int {
-	return m.width
+	return utils.CalcRatio(m.width, 1)
 }
 
 func (m *MemoryDetails) GetHeight() int {
-	return m.height
+	return utils.CalcRatio(m.height, 0.9)
 }
