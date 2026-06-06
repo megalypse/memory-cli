@@ -45,8 +45,13 @@ func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "esc":
 			return m, tea.Quit
 		case "enter":
-			// When enter is pressed, show the full memory content in a new view or window
-			// For now we'll just return nil to indicate no change in model
+			if len(m.memories) > 0 && m.cursor.Cursor < len(m.memories) {
+				selectedMemory := m.memories[m.cursor.Cursor]
+				detailsView := NewMemoryDetails(selectedMemory)
+				detailsView.SetSize(m.width, m.height)
+
+				return GetRootInstance().PushRoute(detailsView)
+			}
 			return m, nil
 		}
 	case msgs.NewMemory:
@@ -86,10 +91,6 @@ func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *Memories) View() string {
 	if m.err != nil {
 		return fmt.Sprintf("Error loading memories: %v", m.err)
-	}
-
-	if len(m.memories) == 0 {
-		return "No memories found for this group."
 	}
 
 	// Create items for the cursor list
