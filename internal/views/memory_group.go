@@ -144,8 +144,9 @@ func (m *MemoryGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *MemoryGroup) View() string {
-	groups := lipgloss.Place(m.GetWidth(), m.GetHeight(), lipgloss.Center, lipgloss.Center, m.groupsCursor.View())
-	footer := lipgloss.Place(m.footer.GetWidth(), m.footer.GetHeight(), lipgloss.Center, lipgloss.Center, m.footer.View())
-
-	return lipgloss.JoinVertical(lipgloss.Center, groups, footer)
+	return lipgloss.JoinVertical(
+		lipgloss.Center,
+		lipgloss.PlaceVertical(m.GetHeight(), lipgloss.Center, m.groupsCursor.View()),
+		lipgloss.PlaceVertical(m.footer.GetHeight(), lipgloss.Center, m.footer.View()),
+	)
 }

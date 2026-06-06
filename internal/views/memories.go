@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/megalypse/go-cli-components/clicomponents"
 	"github.com/megalypse/memory_cli/internal/memory"
 	"github.com/megalypse/memory_cli/internal/msgs"
@@ -102,23 +103,18 @@ func (m *Memories) View() string {
 	}
 	m.cursor.Items = items
 
-	content := m.cursor.View()
-
-	if m.footer != nil {
-		footer := m.footer.View()
-		return fmt.Sprintf("%s\n%s", content, footer)
-	}
-
-	return content
+	return lipgloss.JoinVertical(
+		lipgloss.Center,
+		lipgloss.PlaceVertical(m.GetHeight(), lipgloss.Center, m.cursor.View()),
+		lipgloss.PlaceVertical(m.footer.GetHeight(), lipgloss.Center, m.footer.View()),
+	)
 }
 
 func (m *Memories) SetSize(width, height int) {
 	m.width = width
 	m.height = height
 
-	if m.footer != nil {
-		m.footer.SetSize(width, height)
-	}
+	m.footer.SetSize(width, height)
 }
 
 func (m *Memories) GetWidth() int {
