@@ -1,35 +1,34 @@
 package views
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+)
 
-type Memories struct{}
-
-func (m Memories) Init() tea.Cmd {
-	//TODO implement me
-	panic("implement me")
+type Memories struct {
+	width, height int
 }
 
-func (m Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	//TODO implement me
-	panic("implement me")
+func (m *Memories) Init() tea.Cmd {
+	return nil
 }
 
-func (m Memories) View() string {
-	//TODO implement me
-	panic("implement me")
+func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	return nil, nil
 }
 
-func (m Memories) SetSize(width, height int) {
-	//TODO implement me
-	panic("implement me")
+func (m *Memories) View() string {
+	return ""
 }
 
-func (m Memories) GetWidth() int {
-	//TODO implement me
-	panic("implement me")
+func (m *Memories) SetSize(width, height int) {
+	m.width = width
+	m.height = height
 }
 
-func (m Memories) GetHeight() int {
-	//TODO implement me
-	panic("implement me")
+func (m *Memories) GetWidth() int {
+	return m.width
+}
+
+func (m *Memories) GetHeight() int {
+	return m.height
 }

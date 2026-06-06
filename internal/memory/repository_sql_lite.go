@@ -23,7 +23,7 @@ SELECT memories.id, memories.group_id, memories.name, memories.content, memories
 FROM memory_fts
 JOIN memories ON memories.id = memory_fts.id
 WHERE memory_fts MATCH ?
-ORDER BY bm25(memory_fts, 10.0, 2.0);
+ORDER BY bm25(memory_fts, 10.0, 0.0);
 `
 
 	rows, err := r.db.QueryContext(ctx, query, orMatch)
