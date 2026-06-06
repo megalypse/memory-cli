@@ -29,7 +29,7 @@ func startup() error {
 	}
 
 	_ = memorygroup.GetRepositorySqlLite(db)
-	_ = memory.NewRepositorySqlLite(db)
+	_ = memory.GetRepositorySqlLite(db)
 
 	if err := goose.SetDialect("sqlite3"); err != nil {
 		return err

@@ -17,10 +17,10 @@ type Memories struct {
 }
 
 func NewMemories(groupId int) *Memories {
-	repo := memory.NewRepositorySqlLite(nil)
+	repository := memory.GetRepositorySqlLite(nil)
 	return &Memories{
 		memoryGroupId: groupId,
-		repository:    repo,
+		repository:    repository,
 	}
 }
 

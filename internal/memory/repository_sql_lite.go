@@ -4,10 +4,20 @@ import (
 	"context"
 	"database/sql"
 	"strings"
+	"sync"
 )
 
-func NewRepositorySqlLite(db *sql.DB) *RepositorySqlLite {
-	return &RepositorySqlLite{db: db}
+var (
+	repositoryInstance *RepositorySqlLite
+	repositoryOnce     sync.Once
+)
+
+func GetRepositorySqlLite(db *sql.DB) Repository {
+	repositoryOnce.Do(func() {
+		repositoryInstance = &RepositorySqlLite{db: db}
+	})
+
+	return repositoryInstance
 }
 
 type RepositorySqlLite struct {

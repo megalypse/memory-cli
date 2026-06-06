@@ -58,7 +58,7 @@ func TestMemoryRepositoryIntegration(t *testing.T) {
 	ctx := context.Background()
 	db := newIntegrationDB(t, ctx)
 	groupRepository := memorygroup.GetRepositorySqlLite(db)
-	memoryRepository := memory.NewRepositorySqlLite(db)
+	memoryRepository := memory.GetRepositorySqlLite(db)
 
 	group := createGroup(t, ctx, groupRepository, "engineering")
 	otherGroup := createGroup(t, ctx, groupRepository, "personal")
