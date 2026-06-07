@@ -14,8 +14,17 @@ func TestMemoryDetailsLoadsAndNavigatesRelations(t *testing.T) {
 	current := &memory.Memory{ID: 1, Name: "Current Memory"}
 	first := &memory.Memory{ID: 2, Name: "First Relation"}
 	second := &memory.Memory{ID: 3, Name: "Second Relation"}
+	third := &memory.Memory{ID: 4, Name: "Third Relation"}
+	fourth := &memory.Memory{ID: 5, Name: "Fourth Relation"}
+	fifth := &memory.Memory{ID: 6, Name: "Fifth Relation"}
 	repository := &memoryDetailsRepositoryStub{
-		relations: []*memory.Memory{first, second},
+		relations: map[int][]*memory.Memory{
+			current.ID: {first, second},
+			first.ID:   {current, second, third},
+			second.ID:  {current, third, fourth},
+			third.ID:   {first, fifth},
+			fourth.ID:  {second, fifth},
+		},
 	}
 	details := NewMemoryDetails(current)
 	details.repository = repository
@@ -26,17 +35,29 @@ func TestMemoryDetailsLoadsAndNavigatesRelations(t *testing.T) {
 
 	assert.Same(t, details, model)
 	assert.Nil(t, cmd)
-	assert.Equal(t, []*memory.Memory{first, second}, details.relations)
+	assert.Equal(t, []*memory.Memory{first, second}, details.relations[0])
+	assert.Equal(t, []*memory.Memory{third, fourth}, details.relations[1])
+	assert.Equal(t, []*memory.Memory{fifth}, details.relations[2])
 	assert.Contains(t, details.View(), "Details")
 	assert.Contains(t, details.View(), "Relations")
+	assert.Contains(t, details.View(), "Level 1")
+	assert.Contains(t, details.View(), "Level 2")
+	assert.Contains(t, details.View(), "Level 3")
 	assert.Contains(t, details.View(), "> First Relation")
 
 	model, cmd = details.Update(tea.KeyMsg{Type: tea.KeyDown})
 
 	assert.Same(t, details, model)
 	assert.Nil(t, cmd)
-	assert.Equal(t, 1, details.cursor.Cursor)
+	assert.Equal(t, 1, details.cursors[0].Cursor)
 	assert.Contains(t, details.View(), "> Second Relation")
+
+	model, cmd = details.Update(tea.KeyMsg{Type: tea.KeyRight})
+
+	assert.Same(t, details, model)
+	assert.Nil(t, cmd)
+	assert.Equal(t, 1, details.activeLevel)
+	assert.Contains(t, details.View(), "> Level 2")
 }
 
 func TestMemoryDetailsHeadersDoNotWrap(t *testing.T) {
@@ -51,9 +72,10 @@ func TestMemoryDetailsEnterReplacesRouteWithoutGrowingStack(t *testing.T) {
 	first := &memory.Memory{ID: 2, Name: "First Relation"}
 	second := &memory.Memory{ID: 3, Name: "Second Relation"}
 	details := NewMemoryDetails(current)
-	details.relations = []*memory.Memory{first, second}
-	details.cursor.Items = []string{first.Name, second.Name}
-	details.cursor.Cursor = 1
+	details.relations[1] = []*memory.Memory{first, second}
+	details.cursors[1].Items = []string{first.Name, second.Name}
+	details.cursors[1].Cursor = 1
+	details.activeLevel = 1
 	details.SetSize(90, 30)
 
 	root := GetRootInstance()
@@ -78,7 +100,7 @@ func TestMemoryDetailsEnterReplacesRouteWithoutGrowingStack(t *testing.T) {
 }
 
 type memoryDetailsRepositoryStub struct {
-	relations []*memory.Memory
+	relations map[int][]*memory.Memory
 	err       error
 }
 
@@ -95,10 +117,10 @@ func (r *memoryDetailsRepositoryStub) GetAllByGroup(context.Context, int) ([]*me
 }
 
 func (r *memoryDetailsRepositoryStub) GetRelations(
-	context.Context,
-	*memory.Memory,
+	_ context.Context,
+	item *memory.Memory,
 ) ([]*memory.Memory, error) {
-	return r.relations, r.err
+	return r.relations[item.ID], r.err
 }
 
 func (r *memoryDetailsRepositoryStub) LinkMemories(

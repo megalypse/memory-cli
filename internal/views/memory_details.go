@@ -12,26 +12,34 @@ import (
 )
 
 type MemoryDetails struct {
-	memory     *memory.Memory
-	relations  []*memory.Memory
-	repository memory.Repository
-	cursor     *clicomponents.CursorList
-	err        error
-	width      int
-	height     int
-	footer     *footer
+	memory      *memory.Memory
+	relations   [3][]*memory.Memory
+	repository  memory.Repository
+	cursors     [3]*clicomponents.CursorList
+	activeLevel int
+	err         error
+	width       int
+	height      int
+	footer      *footer
 }
 
 func NewMemoryDetails(mem *memory.Memory) *MemoryDetails {
 	return &MemoryDetails{
 		memory:     mem,
 		repository: memory.GetRepositorySqlLite(nil),
-		cursor: &clicomponents.CursorList{
-			RenderSize: 10,
+		cursors: [3]*clicomponents.CursorList{
+			{RenderSize: 10},
+			{RenderSize: 10},
+			{RenderSize: 10},
 		},
 		footer: &footer{
 			Options: &clicomponents.CursorList{
-				Items: []string{"UP/DOWN: Navigate", "ENTER: Open", "ESC/Q: Return"},
+				Items: []string{
+					"LEFT/RIGHT: Level",
+					"UP/DOWN: Navigate",
+					"ENTER: Open",
+					"ESC/Q: Return",
+				},
 			},
 		},
 	}
@@ -47,22 +55,33 @@ func (m *MemoryDetails) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "esc", "q":
 			return GetRootInstance().PopRoute()
+		case "left":
+			m.moveActiveLevel(-1)
+			return m, nil
+		case "right":
+			m.moveActiveLevel(1)
+			return m, nil
 		case "enter":
-			if len(m.relations) == 0 || m.cursor.Cursor >= len(m.relations) {
+			selected := m.selectedRelation()
+			if selected == nil {
 				return m, nil
 			}
 
-			detailsView := NewMemoryDetails(m.relations[m.cursor.Cursor])
+			detailsView := NewMemoryDetails(selected)
 			detailsView.SetSize(m.width, m.height)
 			return GetRootInstance().ReplaceRoute(detailsView)
 		}
-	case memoryRelationsLoaded:
+	case *memoryRelationsLoaded:
 		m.relations = msg.relations
 		m.err = msg.err
-		m.cursor.Cursor = 0
+		m.activeLevel = firstPopulatedLevel(m.relations)
+
+		for level := range m.cursors {
+			m.cursors[level].Cursor = 0
+		}
 	}
 
-	model, cmd := m.cursor.Update(msg)
+	model, cmd := m.cursors[m.activeLevel].Update(msg)
 	if model != nil {
 		return model, cmd
 	}
@@ -76,7 +95,7 @@ func (m *MemoryDetails) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *MemoryDetails) View() string {
-	contentWidth := m.width * 2 / 3
+	contentWidth := m.width * 2 / 5
 	relationsWidth := m.width - contentWidth
 
 	content := fmt.Sprintf("Name: %s\n\nContent:\n%s", m.memory.Name, m.memory.Content)
@@ -96,7 +115,7 @@ func (m *MemoryDetails) View() string {
 	relationsBodyWidth := max(relationsWidth-3, 0)
 	relationsBody := lipgloss.NewStyle().
 		Width(relationsBodyWidth).
-		Render(m.renderRelations())
+		Render(m.renderRelations(relationsBodyWidth))
 	relationsColumn := lipgloss.NewStyle().
 		BorderLeft(true).
 		PaddingLeft(2).
@@ -124,29 +143,50 @@ func (m *MemoryDetails) SetSize(width, height int) {
 }
 
 func (m *MemoryDetails) loadRelations() tea.Msg {
-	relations, err := m.repository.GetRelations(context.Background(), m.memory)
-	return memoryRelationsLoaded{
+	relations, err := m.getRelationLevels(context.Background())
+	return &memoryRelationsLoaded{
 		relations: relations,
 		err:       err,
 	}
 }
 
-func (m *MemoryDetails) renderRelations() string {
+func (m *MemoryDetails) renderRelations(width int) string {
 	if m.err != nil {
 		return fmt.Sprintf("Error: %v", m.err)
 	}
 
-	if len(m.relations) == 0 {
+	if relationCount(m.relations) == 0 {
 		return "No relations"
 	}
 
-	items := make([]string, len(m.relations))
-	for index, relation := range m.relations {
-		items[index] = relation.Name
-	}
-	m.cursor.Items = items
+	columnWidth := max(width/3, 1)
+	columns := make([]string, len(m.relations))
 
-	return m.cursor.View()
+	for level, relations := range m.relations {
+		items := make([]string, len(relations))
+		for index, relation := range relations {
+			items[index] = relation.Name
+		}
+		m.cursors[level].Items = items
+
+		title := fmt.Sprintf("Level %d", level+1)
+		if level == m.activeLevel {
+			title = "> " + title
+		}
+
+		columns[level] = lipgloss.NewStyle().
+			Width(columnWidth).
+			Render(
+				lipgloss.JoinVertical(
+					lipgloss.Left,
+					title,
+					"",
+					m.cursors[level].View(),
+				),
+			)
+	}
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, columns...)
 }
 
 func (m *MemoryDetails) renderHeader(title string, width int) string {
@@ -158,6 +198,75 @@ func (m *MemoryDetails) renderHeader(title string, width int) string {
 }
 
 type memoryRelationsLoaded struct {
-	relations []*memory.Memory
+	relations [3][]*memory.Memory
 	err       error
+}
+
+func (m *MemoryDetails) getRelationLevels(ctx context.Context) ([3][]*memory.Memory, error) {
+	var levels [3][]*memory.Memory
+	visited := map[int]bool{m.memory.ID: true}
+	frontier := []*memory.Memory{m.memory}
+
+	for level := range levels {
+		next := make([]*memory.Memory, 0)
+
+		for _, current := range frontier {
+			relations, err := m.repository.GetRelations(ctx, current)
+			if err != nil {
+				return levels, err
+			}
+
+			for _, relation := range relations {
+				if visited[relation.ID] {
+					continue
+				}
+
+				visited[relation.ID] = true
+				levels[level] = append(levels[level], relation)
+				next = append(next, relation)
+			}
+		}
+
+		frontier = next
+	}
+
+	return levels, nil
+}
+
+func (m *MemoryDetails) moveActiveLevel(delta int) {
+	next := m.activeLevel + delta
+	if next < 0 || next >= len(m.relations) {
+		return
+	}
+
+	m.activeLevel = next
+}
+
+func (m *MemoryDetails) selectedRelation() *memory.Memory {
+	relations := m.relations[m.activeLevel]
+	cursor := m.cursors[m.activeLevel].Cursor
+	if len(relations) == 0 || cursor >= len(relations) {
+		return nil
+	}
+
+	return relations[cursor]
+}
+
+func firstPopulatedLevel(levels [3][]*memory.Memory) int {
+	for level, relations := range levels {
+		if len(relations) > 0 {
+			return level
+		}
+	}
+
+	return 0
+}
+
+func relationCount(levels [3][]*memory.Memory) int {
+	count := 0
+	for _, relations := range levels {
+		count += len(relations)
+	}
+
+	return count
 }
