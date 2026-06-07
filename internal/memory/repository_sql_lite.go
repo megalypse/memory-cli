@@ -84,6 +84,48 @@ func (r *RepositorySqlLite) LinkMemories(ctx context.Context, memory *Memory, me
 	return nil
 }
 
+func (r *RepositorySqlLite) GetRelations(ctx context.Context, memory *Memory) ([]*Memory, error) {
+	rows, err := r.db.QueryContext(ctx, `
+SELECT related.id, related.group_id, related.name, related.content, related.created_at, related.updated_at
+FROM memory_memory
+JOIN memories AS related ON related.id = memory_memory.memory_id_2
+WHERE memory_memory.memory_id_1 = ?
+UNION
+SELECT related.id, related.group_id, related.name, related.content, related.created_at, related.updated_at
+FROM memory_memory
+JOIN memories AS related ON related.id = memory_memory.memory_id_1
+WHERE memory_memory.memory_id_2 = ?
+ORDER BY name;
+`, memory.ID, memory.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var relations []*Memory
+	for rows.Next() {
+		var relation Memory
+		if err := rows.Scan(
+			&relation.ID,
+			&relation.GroupID,
+			&relation.Name,
+			&relation.Content,
+			&relation.CreatedAt,
+			&relation.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		relations = append(relations, &relation)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return relations, nil
+}
+
 func (r *RepositorySqlLite) Create(ctx context.Context, memory *Memory) error {
 	var id int
 	tx, err := r.db.BeginTx(ctx, nil)

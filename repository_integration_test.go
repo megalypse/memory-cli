@@ -111,6 +111,14 @@ INSERT INTO memory_fts (id, name, content) VALUES (?, ?, ?)
 	err = memoryRepository.LinkMemories(ctx, first, []*memory.Memory{second})
 	require.NoError(t, err)
 
+	firstRelations, err := memoryRepository.GetRelations(ctx, first)
+	require.NoError(t, err)
+	assertMemoryNames(t, firstRelations, "bravo")
+
+	secondRelations, err := memoryRepository.GetRelations(ctx, second)
+	require.NoError(t, err)
+	assertMemoryNames(t, secondRelations, "alpha")
+
 	var links int
 	err = db.QueryRowContext(ctx, `
 SELECT COUNT(*) FROM memory_memory

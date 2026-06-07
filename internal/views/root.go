@@ -110,6 +110,13 @@ func (r *Root) PopRoute() (View, tea.Cmd) {
 	return nil, nil
 }
 
+func (r *Root) ReplaceRoute(route View) (View, tea.Cmd) {
+	cmd := route.Init()
+	r.route = route
+
+	return route, cmd
+}
+
 func (r *Root) resizeCurrentRoute() {
 	title := r.getTitle()
 

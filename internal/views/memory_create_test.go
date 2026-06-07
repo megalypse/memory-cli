@@ -70,6 +70,13 @@ func (r *memoryCreateRepositoryStub) GetAllByGroup(context.Context, int) ([]*mem
 	return nil, nil
 }
 
+func (r *memoryCreateRepositoryStub) GetRelations(
+	context.Context,
+	*memory.Memory,
+) ([]*memory.Memory, error) {
+	return nil, nil
+}
+
 func (r *memoryCreateRepositoryStub) LinkMemories(
 	_ context.Context,
 	item *memory.Memory,
