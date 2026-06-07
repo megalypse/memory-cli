@@ -28,6 +28,47 @@ type RepositorySqlLite struct {
 	db *sql.DB
 }
 
+func (r *RepositorySqlLite) Delete(ctx context.Context, memory *Memory) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(ctx, `
+DELETE FROM memory_memory
+WHERE memory_id_1 = ? OR memory_id_2 = ?;
+`, memory.ID, memory.ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+DELETE FROM memory_fts WHERE id = ?;
+`, memory.ID)
+	if err != nil {
+		return err
+	}
+
+	result, err := tx.ExecContext(ctx, `
+DELETE FROM memories WHERE id = ? AND group_id = ?;
+`, memory.ID, memory.GroupID)
+	if err != nil {
+		return err
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return tx.Commit()
+}
+
 func (r *RepositorySqlLite) QueryMemories(
 	ctx context.Context,
 	groupID int,
@@ -53,18 +94,22 @@ ORDER BY bm25(memory_fts, 0.0, 10.0, 3.0);
 	return scanMemories(rows)
 }
 
-func (r *RepositorySqlLite) FindReferences(ctx context.Context, keys []string) ([]*Memory, error) {
+func (r *RepositorySqlLite) FindReferences(
+	ctx context.Context,
+	groupID int,
+	keys []string,
+) ([]*Memory, error) {
 	orMatch := strings.Join(keys, " OR ")
 
 	query := `
 SELECT memories.id, memories.group_id, memories.name, memories.content, memories.created_at, memories.updated_at
 FROM memory_fts
 JOIN memories ON memories.id = memory_fts.id
-WHERE memory_fts MATCH ?
+WHERE memory_fts MATCH ? AND memories.group_id = ?
 ORDER BY bm25(memory_fts, 10.0, 0.0);
 `
 
-	rows, err := r.db.QueryContext(ctx, query, orMatch)
+	rows, err := r.db.QueryContext(ctx, query, orMatch, groupID)
 	if err != nil {
 		return nil, err
 	}
@@ -76,6 +121,23 @@ ORDER BY bm25(memory_fts, 10.0, 0.0);
 func (r *RepositorySqlLite) LinkMemories(ctx context.Context, memory *Memory, memories []*Memory) error {
 	if len(memories) == 0 {
 		return nil
+	}
+
+	for _, related := range memories {
+		var sameGroup bool
+		err := r.db.QueryRowContext(ctx, `
+SELECT source.group_id = related.group_id
+FROM memories AS source
+JOIN memories AS related ON related.id = ?
+WHERE source.id = ?;
+`, related.ID, memory.ID).Scan(&sameGroup)
+		if err != nil {
+			return err
+		}
+
+		if !sameGroup {
+			return ErrDifferentMemoryGroup
+		}
 	}
 
 	query := strings.Builder{}
@@ -105,14 +167,14 @@ func (r *RepositorySqlLite) GetRelations(ctx context.Context, memory *Memory) ([
 SELECT related.id, related.group_id, related.name, related.content, related.created_at, related.updated_at
 FROM memory_memory
 JOIN memories AS related ON related.id = memory_memory.memory_id_2
-WHERE memory_memory.memory_id_1 = ?
+WHERE memory_memory.memory_id_1 = ? AND related.group_id = ?
 UNION
 SELECT related.id, related.group_id, related.name, related.content, related.created_at, related.updated_at
 FROM memory_memory
 JOIN memories AS related ON related.id = memory_memory.memory_id_1
-WHERE memory_memory.memory_id_2 = ?
+WHERE memory_memory.memory_id_2 = ? AND related.group_id = ?
 ORDER BY name;
-`, memory.ID, memory.ID)
+`, memory.ID, memory.GroupID, memory.ID, memory.GroupID)
 	if err != nil {
 		return nil, err
 	}

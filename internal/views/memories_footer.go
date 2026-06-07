@@ -27,8 +27,13 @@ func newMemoriesFooter(groupId int) *memoriesFooter {
 						return nil, msgs.PublishMessage(msgs.EditMemory{})
 					}, "e"),
 					clicomponents.OnKeys(func() (tea.Model, tea.Cmd) {
+						if GetLastPressedKey() != "d" {
+							return nil, nil
+						}
+
+						SetLastPressedKey("")
 						return nil, msgs.PublishMessage(msgs.DeleteMemory{})
-					}, "d"),
+					}, "y"),
 				},
 			},
 		},
@@ -42,5 +47,5 @@ func (m *memoriesFooter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return model, cmd
 	}
 
-	return m, nil
+	return m, cmd
 }

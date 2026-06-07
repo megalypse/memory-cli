@@ -99,6 +99,16 @@ func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case msgs.DeleteMemory:
 		if len(m.memories) > 0 && m.cursor.Cursor < len(m.memories) {
+			selectedMemory := m.memories[m.cursor.Cursor]
+			if err := m.repository.Delete(context.Background(), selectedMemory); err != nil {
+				return m, msgs.PublishMessage(msgs.Err{Err: err})
+			}
+
+			query := m.searchInput.Value()
+			if query != "" {
+				return m, m.queryMemories(query)
+			}
+
 			return m, func() tea.Msg {
 				return m.loadMemories()
 			}

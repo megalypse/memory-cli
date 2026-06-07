@@ -103,10 +103,15 @@ INSERT INTO memory_fts (id, name, content) VALUES (?, ?, ?)
 
 	assertSingleFTSRow(t, ctx, db, first.ID)
 
-	references, err := memoryRepository.FindReferences(ctx, []string{"updated", "testcontainers"})
+	references, err := memoryRepository.FindReferences(
+		ctx,
+		group.ID,
+		[]string{"updated", "testcontainers", "outside"},
+	)
 	require.NoError(t, err)
 
 	assertMemoryNames(t, references, "alpha", "bravo")
+	assert.NotContains(t, memoryNames(references), "charlie")
 
 	second.Content = "testcontainers integration lutando"
 	err = memoryRepository.Put(ctx, second)
@@ -119,6 +124,15 @@ INSERT INTO memory_fts (id, name, content) VALUES (?, ?, ?)
 
 	err = memoryRepository.LinkMemories(ctx, first, []*memory.Memory{second})
 	require.NoError(t, err)
+
+	err = memoryRepository.LinkMemories(ctx, first, []*memory.Memory{third})
+	assert.ErrorIs(t, err, memory.ErrDifferentMemoryGroup)
+
+	_, err = db.ExecContext(ctx, `
+INSERT INTO memory_memory (memory_id_1, memory_id_2) VALUES (?, ?)
+`, first.ID, third.ID)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "MEMORIES MUST BELONG TO THE SAME GROUP")
 
 	firstRelations, err := memoryRepository.GetRelations(ctx, first)
 	require.NoError(t, err)
@@ -155,6 +169,37 @@ WHERE memory_id_1 = ? AND memory_id_2 = ?
 	require.NoError(t, err)
 	require.Len(t, searchResults, 2)
 	assert.Equal(t, first.ID, searchResults[0].ID)
+
+	err = memoryRepository.Delete(ctx, &memory.Memory{
+		ID:      first.ID,
+		GroupID: otherGroup.ID,
+	})
+	require.ErrorIs(t, err, sql.ErrNoRows)
+
+	err = memoryRepository.Delete(ctx, first)
+	require.NoError(t, err)
+
+	var deletedMemoryRows int
+	err = db.QueryRowContext(ctx, `
+SELECT COUNT(*) FROM memories WHERE id = ?
+`, first.ID).Scan(&deletedMemoryRows)
+	require.NoError(t, err)
+	assert.Zero(t, deletedMemoryRows)
+
+	var deletedFTSRows int
+	err = db.QueryRowContext(ctx, `
+SELECT COUNT(*) FROM memory_fts WHERE id = ?
+`, first.ID).Scan(&deletedFTSRows)
+	require.NoError(t, err)
+	assert.Zero(t, deletedFTSRows)
+
+	var deletedRelationRows int
+	err = db.QueryRowContext(ctx, `
+SELECT COUNT(*) FROM memory_memory
+WHERE memory_id_1 = ? OR memory_id_2 = ?
+`, first.ID, first.ID).Scan(&deletedRelationRows)
+	require.NoError(t, err)
+	assert.Zero(t, deletedRelationRows)
 }
 
 func newIntegrationDB(t *testing.T, ctx context.Context) *sql.DB {
@@ -230,6 +275,15 @@ func assertMemoryNames(t *testing.T, memories []*memory.Memory, expected ...stri
 	for _, name := range expected {
 		assert.Truef(t, seen[name], "expected memory %q in results, got %#v", name, seen)
 	}
+}
+
+func memoryNames(memories []*memory.Memory) []string {
+	names := make([]string, len(memories))
+	for index, item := range memories {
+		names[index] = item.Name
+	}
+
+	return names
 }
 
 func assertSingleFTSRow(t *testing.T, ctx context.Context, db *sql.DB, memoryID int) {

@@ -41,6 +41,7 @@ func TestMemoryCreateLinksFirstReferenceForEachTerm(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, repository.findKeys, 3)
+	assert.Equal(t, []int{7, 7, 7}, repository.findGroupIDs)
 	assert.NotNil(t, repository.created)
 	assert.Equal(t, 99, repository.created.ID)
 	assert.Equal(t, 7, repository.created.GroupID)
@@ -51,6 +52,7 @@ func TestMemoryCreateLinksFirstReferenceForEachTerm(t *testing.T) {
 type memoryCreateRepositoryStub struct {
 	references       map[string][]*memory.Memory
 	findKeys         []string
+	findGroupIDs     []int
 	created          *memory.Memory
 	linkedMemory     *memory.Memory
 	linkedReferences []*memory.Memory
@@ -63,6 +65,10 @@ func (r *memoryCreateRepositoryStub) Create(_ context.Context, item *memory.Memo
 }
 
 func (r *memoryCreateRepositoryStub) Put(context.Context, *memory.Memory) error {
+	return nil
+}
+
+func (r *memoryCreateRepositoryStub) Delete(context.Context, *memory.Memory) error {
 	return nil
 }
 
@@ -89,8 +95,10 @@ func (r *memoryCreateRepositoryStub) LinkMemories(
 
 func (r *memoryCreateRepositoryStub) FindReferences(
 	_ context.Context,
+	groupID int,
 	keys []string,
 ) ([]*memory.Memory, error) {
+	r.findGroupIDs = append(r.findGroupIDs, groupID)
 	r.findKeys = append(r.findKeys, keys[0])
 	return r.references[keys[0]], nil
 }

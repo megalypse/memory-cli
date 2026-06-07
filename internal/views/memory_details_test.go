@@ -130,6 +130,10 @@ func (r *memoryDetailsRepositoryStub) Put(context.Context, *memory.Memory) error
 	return nil
 }
 
+func (r *memoryDetailsRepositoryStub) Delete(context.Context, *memory.Memory) error {
+	return nil
+}
+
 func (r *memoryDetailsRepositoryStub) GetAllByGroup(context.Context, int) ([]*memory.Memory, error) {
 	return nil, nil
 }
@@ -151,6 +155,7 @@ func (r *memoryDetailsRepositoryStub) LinkMemories(
 
 func (r *memoryDetailsRepositoryStub) FindReferences(
 	context.Context,
+	int,
 	[]string,
 ) ([]*memory.Memory, error) {
 	return nil, nil

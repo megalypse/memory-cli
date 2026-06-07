@@ -85,7 +85,7 @@ func (m *MemoryCreate) createMemory(ctx context.Context, name, content string) e
 	referenceIDs := make(map[int]bool, len(terms))
 
 	for _, term := range terms {
-		found, err := m.repository.FindReferences(ctx, []string{term})
+		found, err := m.repository.FindReferences(ctx, m.memoryGroupId, []string{term})
 		if err != nil {
 			return err
 		}
