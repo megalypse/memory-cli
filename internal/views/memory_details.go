@@ -3,7 +3,6 @@ package views
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -29,8 +28,6 @@ const (
 	memoryRelationsTitleHeight  = 1
 	memoryRelationsTitleSpacing = 1
 
-	memoryRelationsCursorCenterRows   = 1
-	memoryRelationsCursorSides        = 2
 	memoryRelationsMinimumColumnWidth = 1
 	memoryRelationsMinimumRenderSize  = 1
 	memoryRelationDisplayOffset       = 1
@@ -211,10 +208,7 @@ func (m *MemoryDetails) renderRelations(width, height int) string {
 		height-memoryRelationsTitleHeight-memoryRelationsTitleSpacing,
 		0,
 	)
-	renderSize := max(
-		(listHeight-memoryRelationsCursorCenterRows)/memoryRelationsCursorSides,
-		memoryRelationsMinimumRenderSize,
-	)
+	renderSize := max(listHeight, memoryRelationsMinimumRenderSize)
 	columns := make([]string, len(m.relations))
 
 	for level, relations := range m.relations {
@@ -224,16 +218,12 @@ func (m *MemoryDetails) renderRelations(width, height int) string {
 		}
 		m.cursors[level].Items = items
 		m.cursors[level].RenderSize = renderSize
+		m.cursors[level].HideCursor = level != m.activeLevel
 
 		title := fmt.Sprintf("%dº", level+memoryRelationDisplayOffset)
 		list := lipgloss.NewStyle().
 			Height(listHeight).
-			Render(strings.Join(items, "\n"))
-		if level == m.activeLevel {
-			list = lipgloss.NewStyle().
-				Height(listHeight).
-				Render(m.cursors[level].View())
-		}
+			Render(m.cursors[level].View())
 
 		columns[level] = lipgloss.NewStyle().
 			Width(columnWidth).

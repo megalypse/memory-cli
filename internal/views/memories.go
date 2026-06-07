@@ -97,7 +97,7 @@ func (m *Memories) View() string {
 
 	items := make([]string, len(m.memories))
 	for i, memory := range m.memories {
-		items[i] = fmt.Sprintf("[%d] %s", i+1, memory.Name)
+		items[i] = fmt.Sprintf("%s", memory.Name)
 	}
 	m.cursor.Items = items
 

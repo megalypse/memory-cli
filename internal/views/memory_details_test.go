@@ -61,6 +61,8 @@ func TestMemoryDetailsLoadsAndNavigatesRelations(t *testing.T) {
 	assert.Equal(t, 1, details.activeLevel)
 	assert.Contains(t, details.View(), "> Third Relation")
 	assert.NotContains(t, details.View(), "> Second Relation")
+	assert.False(t, details.cursors[1].HideCursor)
+	assert.True(t, details.cursors[0].HideCursor)
 }
 
 func TestMemoryDetailsHeadersDoNotWrap(t *testing.T) {
@@ -78,9 +80,9 @@ func TestMemoryDetailsUsesFullBodyHeight(t *testing.T) {
 	view := details.View()
 
 	assert.Equal(t, 24, lipgloss.Height(view))
-	assert.Equal(t, 9, details.cursors[0].RenderSize)
-	assert.Equal(t, 9, details.cursors[1].RenderSize)
-	assert.Equal(t, 9, details.cursors[2].RenderSize)
+	assert.Equal(t, 20, details.cursors[0].RenderSize)
+	assert.Equal(t, 20, details.cursors[1].RenderSize)
+	assert.Equal(t, 20, details.cursors[2].RenderSize)
 }
 
 func TestMemoryDetailsEnterReplacesRouteWithoutGrowingStack(t *testing.T) {
