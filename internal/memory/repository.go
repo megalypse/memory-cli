@@ -9,4 +9,5 @@ type Repository interface {
 	GetRelations(ctx context.Context, memory *Memory) ([]*Memory, error)
 	LinkMemories(ctx context.Context, memory *Memory, memories []*Memory) error
 	FindReferences(ctx context.Context, keys []string) ([]*Memory, error)
+	QueryMemories(ctx context.Context, groupID int, query string) ([]*Memory, error)
 }

@@ -28,9 +28,33 @@ type RepositorySqlLite struct {
 	db *sql.DB
 }
 
+func (r *RepositorySqlLite) QueryMemories(
+	ctx context.Context,
+	groupID int,
+	query string,
+) ([]*Memory, error) {
+	ftsQuery := buildFTSQuery(query)
+	if ftsQuery == "" {
+		return r.GetAllByGroup(ctx, groupID)
+	}
+
+	rows, err := r.db.QueryContext(ctx, `
+SELECT memories.id, memories.group_id, memories.name, memories.content, memories.created_at, memories.updated_at
+FROM memory_fts
+JOIN memories ON memories.id = memory_fts.id
+WHERE memory_fts MATCH ? AND memories.group_id = ?
+ORDER BY bm25(memory_fts, 0.0, 10.0, 3.0);
+`, ftsQuery, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return scanMemories(rows)
+}
+
 func (r *RepositorySqlLite) FindReferences(ctx context.Context, keys []string) ([]*Memory, error) {
 	orMatch := strings.Join(keys, " OR ")
-	var result []*Memory
 
 	query := `
 SELECT memories.id, memories.group_id, memories.name, memories.content, memories.created_at, memories.updated_at
@@ -46,15 +70,7 @@ ORDER BY bm25(memory_fts, 10.0, 0.0);
 	}
 	defer rows.Close()
 
-	for rows.Next() {
-		var memory Memory
-		if err := rows.Scan(&memory.ID, &memory.GroupID, &memory.Name, &memory.Content, &memory.CreatedAt, &memory.UpdatedAt); err != nil {
-			return nil, err
-		}
-		result = append(result, &memory)
-	}
-
-	return result, nil
+	return scanMemories(rows)
 }
 
 func (r *RepositorySqlLite) LinkMemories(ctx context.Context, memory *Memory, memories []*Memory) error {
@@ -190,7 +206,6 @@ WHERE id = ?;
 }
 
 func (r *RepositorySqlLite) GetAllByGroup(ctx context.Context, groupId int) ([]*Memory, error) {
-	var result []*Memory
 	rows, err := r.db.QueryContext(ctx, `
 SELECT id, group_id, name, content, created_at, updated_at FROM memories
 WHERE group_id = ?
@@ -202,12 +217,30 @@ ORDER BY created_at DESC;
 	}
 	defer rows.Close()
 
+	return scanMemories(rows)
+}
+
+func buildFTSQuery(query string) string {
+	terms := strings.Fields(query)
+	for index, term := range terms {
+		terms[index] = `"` + strings.ReplaceAll(term, `"`, `""`) + `"`
+	}
+
+	return strings.Join(terms, " AND ")
+}
+
+func scanMemories(rows *sql.Rows) ([]*Memory, error) {
+	var result []*Memory
 	for rows.Next() {
 		var memory Memory
 		if err := rows.Scan(&memory.ID, &memory.GroupID, &memory.Name, &memory.Content, &memory.CreatedAt, &memory.UpdatedAt); err != nil {
 			return nil, err
 		}
 		result = append(result, &memory)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return result, nil

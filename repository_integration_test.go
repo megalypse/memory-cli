@@ -127,6 +127,25 @@ WHERE memory_id_1 = ? AND memory_id_2 = ?
 	require.NoError(t, err)
 
 	assert.Equal(t, 1, links)
+
+	first.Name = "sqlite ranking"
+	first.Content = "secondary"
+	err = memoryRepository.Put(ctx, first)
+	require.NoError(t, err)
+
+	second.Name = "secondary"
+	second.Content = "sqlite ranking"
+	err = memoryRepository.Put(ctx, second)
+	require.NoError(t, err)
+
+	third.Name = "sqlite outside group"
+	err = memoryRepository.Put(ctx, third)
+	require.NoError(t, err)
+
+	searchResults, err := memoryRepository.QueryMemories(ctx, group.ID, "sqlite")
+	require.NoError(t, err)
+	require.Len(t, searchResults, 2)
+	assert.Equal(t, first.ID, searchResults[0].ID)
 }
 
 func newIntegrationDB(t *testing.T, ctx context.Context) *sql.DB {

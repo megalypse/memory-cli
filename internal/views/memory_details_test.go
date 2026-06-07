@@ -155,3 +155,11 @@ func (r *memoryDetailsRepositoryStub) FindReferences(
 ) ([]*memory.Memory, error) {
 	return nil, nil
 }
+
+func (r *memoryDetailsRepositoryStub) QueryMemories(
+	context.Context,
+	int,
+	string,
+) ([]*memory.Memory, error) {
+	return nil, nil
+}

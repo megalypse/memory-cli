@@ -94,3 +94,11 @@ func (r *memoryCreateRepositoryStub) FindReferences(
 	r.findKeys = append(r.findKeys, keys[0])
 	return r.references[keys[0]], nil
 }
+
+func (r *memoryCreateRepositoryStub) QueryMemories(
+	context.Context,
+	int,
+	string,
+) ([]*memory.Memory, error) {
+	return nil, nil
+}
