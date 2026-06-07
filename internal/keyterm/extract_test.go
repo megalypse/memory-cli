@@ -1,8 +1,9 @@
 package keyterm
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestExtract(t *testing.T) {
@@ -38,9 +39,7 @@ func TestExtract(t *testing.T) {
 			t.Parallel()
 
 			got := Extract(test.raw)
-			if !reflect.DeepEqual(got, test.want) {
-				t.Fatalf("Extract(%q) = %#v, want %#v", test.raw, got, test.want)
-			}
+			assert.Equal(t, test.want, got)
 		})
 	}
 }

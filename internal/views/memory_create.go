@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/megalypse/go-cli-components/clicomponents"
 	"github.com/megalypse/memory_cli/internal/components"
+	"github.com/megalypse/memory_cli/internal/keyterm"
 	"github.com/megalypse/memory_cli/internal/memory"
 	"github.com/megalypse/memory_cli/internal/msgs"
 )
@@ -67,11 +68,7 @@ func (m *MemoryCreate) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		memoryName := m.nameInput.Value()
 		memoryContent := m.contentInput.Value()
 
-		if err := m.repository.Create(context.Background(), &memory.Memory{
-			GroupID: m.memoryGroupId,
-			Name:    memoryName,
-			Content: memoryContent,
-		}); err != nil {
+		if err := m.createMemory(context.Background(), memoryName, memoryContent); err != nil {
 			return nil, msgs.PublishMessage(msgs.Err{Err: err})
 		}
 
@@ -80,6 +77,42 @@ func (m *MemoryCreate) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, tea.Batch(inputCmd, footerCmd)
+}
+
+func (m *MemoryCreate) createMemory(ctx context.Context, name, content string) error {
+	terms := append(keyterm.Extract(name), keyterm.Extract(content)...)
+	references := make([]*memory.Memory, 0, len(terms))
+	referenceIDs := make(map[int]bool, len(terms))
+
+	for _, term := range terms {
+		found, err := m.repository.FindReferences(ctx, []string{term})
+		if err != nil {
+			return err
+		}
+
+		if len(found) == 0 || referenceIDs[found[0].ID] {
+			continue
+		}
+
+		references = append(references, found[0])
+		referenceIDs[found[0].ID] = true
+	}
+
+	newMemory := &memory.Memory{
+		GroupID: m.memoryGroupId,
+		Name:    name,
+		Content: content,
+	}
+
+	if err := m.repository.Create(ctx, newMemory); err != nil {
+		return err
+	}
+
+	if len(references) == 0 {
+		return nil
+	}
+
+	return m.repository.LinkMemories(ctx, newMemory, references)
 }
 
 func (m *MemoryCreate) View() string {

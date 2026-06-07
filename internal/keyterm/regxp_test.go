@@ -1,6 +1,10 @@
 package keyterm
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestGetRegexMatchesCapitalCaseTerms(t *testing.T) {
 	t.Parallel()
@@ -26,9 +30,7 @@ func TestGetRegexMatchesCapitalCaseTerms(t *testing.T) {
 			t.Parallel()
 
 			got := rgx.FindString(test.input)
-			if got != test.want {
-				t.Fatalf("FindString(%q) = %q, want %q", test.input, got, test.want)
-			}
+			assert.Equal(t, test.want, got)
 		})
 	}
 }
@@ -53,9 +55,7 @@ func TestGetRegexStopsBeforeInvalidContinuation(t *testing.T) {
 			t.Parallel()
 
 			got := rgx.FindString(test.input)
-			if got != test.want {
-				t.Fatalf("FindString(%q) = %q, want %q", test.input, got, test.want)
-			}
+			assert.Equal(t, test.want, got)
 		})
 	}
 }
