@@ -223,7 +223,7 @@ ORDER BY created_at DESC;
 func buildFTSQuery(query string) string {
 	terms := strings.Fields(query)
 	for index, term := range terms {
-		terms[index] = `"` + strings.ReplaceAll(term, `"`, `""`) + `"`
+		terms[index] = `"` + strings.ReplaceAll(term, `"`, `""`) + `"*`
 	}
 
 	return strings.Join(terms, " AND ")

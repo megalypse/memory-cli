@@ -108,6 +108,15 @@ INSERT INTO memory_fts (id, name, content) VALUES (?, ?, ?)
 
 	assertMemoryNames(t, references, "alpha", "bravo")
 
+	second.Content = "testcontainers integration lutando"
+	err = memoryRepository.Put(ctx, second)
+	require.NoError(t, err)
+
+	prefixResults, err := memoryRepository.QueryMemories(ctx, group.ID, "lutan")
+	require.NoError(t, err)
+	require.Len(t, prefixResults, 1)
+	assert.Equal(t, second.ID, prefixResults[0].ID)
+
 	err = memoryRepository.LinkMemories(ctx, first, []*memory.Memory{second})
 	require.NoError(t, err)
 
