@@ -12,7 +12,7 @@ func getRgx() *regexp.Regexp {
 	connectorPattern := alternatives(connectors)
 	prefixPattern := alternatives(prefixes)
 	capitalizedWord := `\p{Lu}[\p{Ll}\p{M}]*`
-	pattern := `(?:(?:` + prefixPattern + `) )?` +
+	pattern := `(?:\b(?:` + prefixPattern + `) )?` +
 		capitalizedWord +
 		`(?: (?:(?:` + connectorPattern + `) )?` + capitalizedWord + `)*`
 
