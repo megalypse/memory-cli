@@ -29,7 +29,7 @@ func TestMemoriesSearch(t *testing.T) {
 	view.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("/")})
 	assert.True(t, view.searching)
 	assert.Equal(t, listBeforeSearch, view.View())
-	assert.Contains(t, view.RenderFooter(), "Search:")
+	assert.Contains(t, view.RenderFooter(), "SEARCH:")
 
 	view.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("second")})
 	result := view.queryMemories("second")()

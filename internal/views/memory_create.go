@@ -42,11 +42,11 @@ type MemoryCreate struct {
 
 func (m *MemoryCreate) Init() tea.Cmd {
 	nameInput := textinput.New()
-	nameInput.Placeholder = "Name"
+	nameInput.Placeholder = "NAME"
 	nameInput.Focus()
 
 	contentInput := textarea.New()
-	contentInput.Placeholder = "Content"
+	contentInput.Placeholder = "CONTENT"
 
 	m.nameInput = &components.TextInput{Model: nameInput}
 	m.contentInput = &components.TextArea{Model: contentInput}

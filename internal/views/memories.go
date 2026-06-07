@@ -28,8 +28,8 @@ type Memories struct {
 func NewMemories(groupId int) *Memories {
 	repository := memory.GetRepositorySqlLite(nil)
 	searchInput := textinput.New()
-	searchInput.Prompt = "Search: "
-	searchInput.Placeholder = "title or content"
+	searchInput.Prompt = "SEARCH: "
+	searchInput.Placeholder = "TITLE OR CONTENT"
 
 	return &Memories{
 		memoryGroupId: groupId,
@@ -120,7 +120,7 @@ func (m *Memories) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Memories) View() string {
 	if m.err != nil {
-		return fmt.Sprintf("Error loading memories: %v", m.err)
+		return fmt.Sprintf("ERROR LOADING MEMORIES: %v", m.err)
 	}
 
 	items := make([]string, len(m.memories))

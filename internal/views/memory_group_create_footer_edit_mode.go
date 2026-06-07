@@ -6,7 +6,7 @@ func newMemoryGroupCreateFooterEditMode() *footer {
 	return &footer{
 		base: base{},
 		Options: &clicomponents.CursorList{
-			Items: []string{"(esc) Quit Edit Mode", "(tab) Switch Input"},
+			Items: []string{"(ESC) EXIT EDIT MODE", "(TAB) SWITCH INPUT"},
 		},
 	}
 }

@@ -8,7 +8,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "",
-	Short: "Start Memory CLI",
+	Short: "START MEMORY CLI",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		p := tea.NewProgram(views.GetRootInstance())
 

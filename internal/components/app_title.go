@@ -6,6 +6,6 @@ import (
 )
 
 func GetAppTitle() string {
-	title := figure.NewFigure("Memory", "", true).String()
+	title := figure.NewFigure("MEMORY", "", true).String()
 	return lipgloss.NewStyle().Foreground(ColorMain).Render(title)
 }

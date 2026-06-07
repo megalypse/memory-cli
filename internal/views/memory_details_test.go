@@ -38,8 +38,8 @@ func TestMemoryDetailsLoadsAndNavigatesRelations(t *testing.T) {
 	assert.Equal(t, []*memory.Memory{first, second}, details.relations[0])
 	assert.Equal(t, []*memory.Memory{third, fourth}, details.relations[1])
 	assert.Equal(t, []*memory.Memory{fifth}, details.relations[2])
-	assert.Contains(t, details.View(), "Details")
-	assert.Contains(t, details.View(), "Relations")
+	assert.Contains(t, details.View(), "DETAILS")
+	assert.Contains(t, details.View(), "RELATIONS")
 	assert.Contains(t, details.View(), "1º")
 	assert.Contains(t, details.View(), "2º")
 	assert.Contains(t, details.View(), "3º")
@@ -68,8 +68,8 @@ func TestMemoryDetailsLoadsAndNavigatesRelations(t *testing.T) {
 func TestMemoryDetailsHeadersDoNotWrap(t *testing.T) {
 	details := NewMemoryDetails(&memory.Memory{Name: "Current Memory"})
 
-	assert.Equal(t, 1, lipgloss.Height(details.renderHeader("Details", 20)))
-	assert.Equal(t, 1, lipgloss.Height(details.renderHeader("Relations", 10)))
+	assert.Equal(t, 1, lipgloss.Height(details.renderHeader("DETAILS", 20)))
+	assert.Equal(t, 1, lipgloss.Height(details.renderHeader("RELATIONS", 10)))
 }
 
 func TestMemoryDetailsUsesFullBodyHeight(t *testing.T) {

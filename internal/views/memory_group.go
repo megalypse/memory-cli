@@ -31,7 +31,7 @@ func (m *MemoryGroup) Init() tea.Cmd {
 	m.footer = &footer{}
 
 	cursor := &clicomponents.CursorList{
-		Items:      []string{"(a) Add", "(e) Edit", "(d -> y) Delete"},
+		Items:      []string{"(A) ADD", "(E) EDIT", "(D -> Y) DELETE"},
 		RenderSize: 3,
 	}
 

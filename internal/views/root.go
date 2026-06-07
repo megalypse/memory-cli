@@ -122,7 +122,7 @@ func (r *Root) resizeCurrentRoute(bodyHeight int) {
 }
 
 func (r *Root) getTitle() string {
-	title := figure.NewFigure("Memory", "", true).String()
+	title := figure.NewFigure("MEMORY", "", true).String()
 	title = lipgloss.NewStyle().Foreground(components.ColorMain).Render(title)
 	title = lipgloss.PlaceHorizontal(r.width, lipgloss.Center, title)
 	return title

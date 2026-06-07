@@ -60,10 +60,10 @@ func NewMemoryDetails(mem *memory.Memory) *MemoryDetails {
 		footer: &footer{
 			Options: &clicomponents.CursorList{
 				Items: []string{
-					"LEFT/RIGHT: Level",
-					"UP/DOWN: Navigate",
-					"ENTER: Open",
-					"ESC/Q: Return",
+					"LEFT/RIGHT: LEVEL",
+					"UP/DOWN: NAVIGATE",
+					"ENTER: OPEN",
+					"ESC/Q: RETURN",
 				},
 			},
 		},
@@ -125,7 +125,7 @@ func (m *MemoryDetails) View() string {
 		memoryDetailsWidthRatioDenominator
 	relationsWidth := m.width - contentWidth
 
-	content := fmt.Sprintf("Name: %s\n\nContent:\n%s", m.memory.Name, m.memory.Content)
+	content := fmt.Sprintf("NAME: %s\n\nCONTENT:\n%s", m.memory.Name, m.memory.Content)
 	contentBodyWidth := max(contentWidth-memoryDetailsColumnGap, 0)
 	contentBodyHeight := max(
 		m.height-memoryDetailsHeaderHeight-memoryDetailsHeaderSpacing,
@@ -141,7 +141,7 @@ func (m *MemoryDetails) View() string {
 		Render(
 			lipgloss.JoinVertical(
 				lipgloss.Left,
-				m.renderHeader("Details", contentBodyWidth),
+				m.renderHeader("DETAILS", contentBodyWidth),
 				"",
 				contentBody,
 			),
@@ -163,7 +163,7 @@ func (m *MemoryDetails) View() string {
 		Render(
 			lipgloss.JoinVertical(
 				lipgloss.Left,
-				m.renderHeader("Relations", relationsBodyWidth),
+				m.renderHeader("RELATIONS", relationsBodyWidth),
 				"",
 				relationsBody,
 			),
@@ -193,11 +193,11 @@ func (m *MemoryDetails) loadRelations() tea.Msg {
 
 func (m *MemoryDetails) renderRelations(width, height int) string {
 	if m.err != nil {
-		return lipgloss.NewStyle().Height(height).Render(fmt.Sprintf("Error: %v", m.err))
+		return lipgloss.NewStyle().Height(height).Render(fmt.Sprintf("ERROR: %v", m.err))
 	}
 
 	if relationCount(m.relations) == 0 {
-		return lipgloss.NewStyle().Height(height).Render("No relations")
+		return lipgloss.NewStyle().Height(height).Render("NO RELATIONS")
 	}
 
 	columnWidth := max(

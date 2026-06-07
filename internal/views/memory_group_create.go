@@ -38,11 +38,11 @@ type MemoryGroupCreate struct {
 
 func (m *MemoryGroupCreate) Init() tea.Cmd {
 	nameInput := textinput.New()
-	nameInput.Placeholder = "Name"
+	nameInput.Placeholder = "NAME"
 	nameInput.Focus()
 
 	descriptionInput := textarea.New()
-	descriptionInput.Placeholder = "Description"
+	descriptionInput.Placeholder = "DESCRIPTION"
 
 	m.nameInput = &components.TextInput{Model: nameInput}
 	m.descriptionInput = &components.TextArea{Model: descriptionInput}

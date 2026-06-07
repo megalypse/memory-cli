@@ -10,8 +10,8 @@ func newMemoryCreateFooterCmdMode() *footer {
 	return &footer{
 		Options: &clicomponents.CursorList{
 			Items: []string{
-				"(s) Save",
-				"(esc) Cancel",
+				"(S) SAVE",
+				"(ESC) CANCEL",
 			},
 			KeyActions: []clicomponents.OnKeyFn{
 				clicomponents.OnKey("s", func() (tea.Model, tea.Cmd) {

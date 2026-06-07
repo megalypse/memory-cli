@@ -18,7 +18,7 @@ func newMemoriesFooter(groupId int) *memoriesFooter {
 	return &memoriesFooter{
 		footer: &footer{
 			Options: &clicomponents.CursorList{
-				Items: []string{"/: Buscar", "(n) Nova memória", "(e) Editar", "(d -> y) Deletar"},
+				Items: []string{"/: SEARCH", "(N) NEW MEMORY", "(E) EDIT", "(D -> Y) DELETE"},
 				KeyActions: []clicomponents.OnKeyFn{
 					clicomponents.OnKeys(func() (tea.Model, tea.Cmd) {
 						return nil, msgs.PublishMessage(msgs.NewMemory{})
