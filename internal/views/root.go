@@ -55,13 +55,13 @@ func (r *Root) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (r *Root) View() string {
-	r.resizeCurrentRoute()
 	screenHeight := r.height
 
 	title := r.getTitle()
 	_, titleHeight := lipgloss.Size(title)
 	footerHeight := utils.CalcRatio(screenHeight, 0.1)
-	bodyHeight := screenHeight - footerHeight - titleHeight
+	bodyHeight := max(screenHeight-footerHeight-titleHeight, 0)
+	r.resizeCurrentRoute(bodyHeight)
 
 	title = lipgloss.PlaceVertical(
 		titleHeight,
@@ -117,10 +117,8 @@ func (r *Root) ReplaceRoute(route View) (View, tea.Cmd) {
 	return route, cmd
 }
 
-func (r *Root) resizeCurrentRoute() {
-	title := r.getTitle()
-
-	r.route.SetSize(r.width, r.height-lipgloss.Height(title))
+func (r *Root) resizeCurrentRoute(bodyHeight int) {
+	r.route.SetSize(r.width, bodyHeight)
 }
 
 func (r *Root) getTitle() string {

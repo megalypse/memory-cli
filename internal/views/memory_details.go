@@ -3,6 +3,7 @@ package views
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -11,11 +12,38 @@ import (
 	"github.com/megalypse/memory_cli/internal/memory"
 )
 
+const (
+	memoryRelationLevelCount = 3
+
+	memoryDetailsWidthRatioNumerator   = 2
+	memoryDetailsWidthRatioDenominator = 5
+
+	memoryDetailsColumnGap     = 2
+	memoryRelationsBorderWidth = 1
+	memoryRelationsLeftPadding = 2
+	memoryRelationsColumnInset = memoryRelationsBorderWidth + memoryRelationsLeftPadding
+	memoryRelationsColumnCount = memoryRelationLevelCount
+
+	memoryDetailsHeaderHeight   = 1
+	memoryDetailsHeaderSpacing  = 1
+	memoryRelationsTitleHeight  = 1
+	memoryRelationsTitleSpacing = 1
+
+	memoryRelationsCursorCenterRows   = 1
+	memoryRelationsCursorSides        = 2
+	memoryRelationsMinimumColumnWidth = 1
+	memoryRelationsMinimumRenderSize  = 1
+	memoryRelationDisplayOffset       = 1
+
+	previousRelationLevel = -1
+	nextRelationLevel     = 1
+)
+
 type MemoryDetails struct {
 	memory      *memory.Memory
-	relations   [3][]*memory.Memory
+	relations   [memoryRelationLevelCount][]*memory.Memory
 	repository  memory.Repository
-	cursors     [3]*clicomponents.CursorList
+	cursors     [memoryRelationLevelCount]*clicomponents.CursorList
 	activeLevel int
 	err         error
 	width       int
@@ -27,10 +55,10 @@ func NewMemoryDetails(mem *memory.Memory) *MemoryDetails {
 	return &MemoryDetails{
 		memory:     mem,
 		repository: memory.GetRepositorySqlLite(nil),
-		cursors: [3]*clicomponents.CursorList{
-			{RenderSize: 10},
-			{RenderSize: 10},
-			{RenderSize: 10},
+		cursors: [memoryRelationLevelCount]*clicomponents.CursorList{
+			{},
+			{},
+			{},
 		},
 		footer: &footer{
 			Options: &clicomponents.CursorList{
@@ -56,10 +84,10 @@ func (m *MemoryDetails) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc", "q":
 			return GetRootInstance().PopRoute()
 		case "left":
-			m.moveActiveLevel(-1)
+			m.moveActiveLevel(previousRelationLevel)
 			return m, nil
 		case "right":
-			m.moveActiveLevel(1)
+			m.moveActiveLevel(nextRelationLevel)
 			return m, nil
 		case "enter":
 			selected := m.selectedRelation()
@@ -95,30 +123,46 @@ func (m *MemoryDetails) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *MemoryDetails) View() string {
-	contentWidth := m.width * 2 / 5
+	contentWidth := m.width *
+		memoryDetailsWidthRatioNumerator /
+		memoryDetailsWidthRatioDenominator
 	relationsWidth := m.width - contentWidth
 
 	content := fmt.Sprintf("Name: %s\n\nContent:\n%s", m.memory.Name, m.memory.Content)
-	contentBodyWidth := max(contentWidth-2, 0)
+	contentBodyWidth := max(contentWidth-memoryDetailsColumnGap, 0)
+	contentBodyHeight := max(
+		m.height-memoryDetailsHeaderHeight-memoryDetailsHeaderSpacing,
+		0,
+	)
 	contentBody := lipgloss.NewStyle().
 		Width(contentBodyWidth).
+		Height(contentBodyHeight).
 		Render(content)
-	contentColumn := lipgloss.NewStyle().PaddingRight(2).Render(
-		lipgloss.JoinVertical(
-			lipgloss.Left,
-			m.renderHeader("Details", contentBodyWidth),
-			"",
-			contentBody,
-		),
-	)
+	contentColumn := lipgloss.NewStyle().
+		Height(m.height).
+		PaddingRight(memoryDetailsColumnGap).
+		Render(
+			lipgloss.JoinVertical(
+				lipgloss.Left,
+				m.renderHeader("Details", contentBodyWidth),
+				"",
+				contentBody,
+			),
+		)
 
-	relationsBodyWidth := max(relationsWidth-3, 0)
+	relationsBodyWidth := max(relationsWidth-memoryRelationsColumnInset, 0)
+	relationsBodyHeight := max(
+		m.height-memoryDetailsHeaderHeight-memoryDetailsHeaderSpacing,
+		0,
+	)
 	relationsBody := lipgloss.NewStyle().
 		Width(relationsBodyWidth).
-		Render(m.renderRelations(relationsBodyWidth))
+		Height(relationsBodyHeight).
+		Render(m.renderRelations(relationsBodyWidth, relationsBodyHeight))
 	relationsColumn := lipgloss.NewStyle().
+		Height(m.height).
 		BorderLeft(true).
-		PaddingLeft(2).
+		PaddingLeft(memoryRelationsLeftPadding).
 		Render(
 			lipgloss.JoinVertical(
 				lipgloss.Left,
@@ -150,16 +194,27 @@ func (m *MemoryDetails) loadRelations() tea.Msg {
 	}
 }
 
-func (m *MemoryDetails) renderRelations(width int) string {
+func (m *MemoryDetails) renderRelations(width, height int) string {
 	if m.err != nil {
-		return fmt.Sprintf("Error: %v", m.err)
+		return lipgloss.NewStyle().Height(height).Render(fmt.Sprintf("Error: %v", m.err))
 	}
 
 	if relationCount(m.relations) == 0 {
-		return "No relations"
+		return lipgloss.NewStyle().Height(height).Render("No relations")
 	}
 
-	columnWidth := max(width/3, 1)
+	columnWidth := max(
+		width/memoryRelationsColumnCount,
+		memoryRelationsMinimumColumnWidth,
+	)
+	listHeight := max(
+		height-memoryRelationsTitleHeight-memoryRelationsTitleSpacing,
+		0,
+	)
+	renderSize := max(
+		(listHeight-memoryRelationsCursorCenterRows)/memoryRelationsCursorSides,
+		memoryRelationsMinimumRenderSize,
+	)
 	columns := make([]string, len(m.relations))
 
 	for level, relations := range m.relations {
@@ -168,20 +223,27 @@ func (m *MemoryDetails) renderRelations(width int) string {
 			items[index] = relation.Name
 		}
 		m.cursors[level].Items = items
+		m.cursors[level].RenderSize = renderSize
 
-		title := fmt.Sprintf("Level %d", level+1)
+		title := fmt.Sprintf("%dº", level+memoryRelationDisplayOffset)
+		list := lipgloss.NewStyle().
+			Height(listHeight).
+			Render(strings.Join(items, "\n"))
 		if level == m.activeLevel {
-			title = "> " + title
+			list = lipgloss.NewStyle().
+				Height(listHeight).
+				Render(m.cursors[level].View())
 		}
 
 		columns[level] = lipgloss.NewStyle().
 			Width(columnWidth).
+			Height(height).
 			Render(
 				lipgloss.JoinVertical(
 					lipgloss.Left,
 					title,
 					"",
-					m.cursors[level].View(),
+					list,
 				),
 			)
 	}
@@ -198,12 +260,14 @@ func (m *MemoryDetails) renderHeader(title string, width int) string {
 }
 
 type memoryRelationsLoaded struct {
-	relations [3][]*memory.Memory
+	relations [memoryRelationLevelCount][]*memory.Memory
 	err       error
 }
 
-func (m *MemoryDetails) getRelationLevels(ctx context.Context) ([3][]*memory.Memory, error) {
-	var levels [3][]*memory.Memory
+func (m *MemoryDetails) getRelationLevels(
+	ctx context.Context,
+) ([memoryRelationLevelCount][]*memory.Memory, error) {
+	var levels [memoryRelationLevelCount][]*memory.Memory
 	visited := map[int]bool{m.memory.ID: true}
 	frontier := []*memory.Memory{m.memory}
 
@@ -252,7 +316,9 @@ func (m *MemoryDetails) selectedRelation() *memory.Memory {
 	return relations[cursor]
 }
 
-func firstPopulatedLevel(levels [3][]*memory.Memory) int {
+func firstPopulatedLevel(
+	levels [memoryRelationLevelCount][]*memory.Memory,
+) int {
 	for level, relations := range levels {
 		if len(relations) > 0 {
 			return level
@@ -262,7 +328,7 @@ func firstPopulatedLevel(levels [3][]*memory.Memory) int {
 	return 0
 }
 
-func relationCount(levels [3][]*memory.Memory) int {
+func relationCount(levels [memoryRelationLevelCount][]*memory.Memory) int {
 	count := 0
 	for _, relations := range levels {
 		count += len(relations)

@@ -40,10 +40,12 @@ func TestMemoryDetailsLoadsAndNavigatesRelations(t *testing.T) {
 	assert.Equal(t, []*memory.Memory{fifth}, details.relations[2])
 	assert.Contains(t, details.View(), "Details")
 	assert.Contains(t, details.View(), "Relations")
-	assert.Contains(t, details.View(), "Level 1")
-	assert.Contains(t, details.View(), "Level 2")
-	assert.Contains(t, details.View(), "Level 3")
+	assert.Contains(t, details.View(), "1º")
+	assert.Contains(t, details.View(), "2º")
+	assert.Contains(t, details.View(), "3º")
 	assert.Contains(t, details.View(), "> First Relation")
+	assert.NotContains(t, details.View(), "> Third Relation")
+	assert.NotContains(t, details.View(), "> Fifth Relation")
 
 	model, cmd = details.Update(tea.KeyMsg{Type: tea.KeyDown})
 
@@ -57,7 +59,8 @@ func TestMemoryDetailsLoadsAndNavigatesRelations(t *testing.T) {
 	assert.Same(t, details, model)
 	assert.Nil(t, cmd)
 	assert.Equal(t, 1, details.activeLevel)
-	assert.Contains(t, details.View(), "> Level 2")
+	assert.Contains(t, details.View(), "> Third Relation")
+	assert.NotContains(t, details.View(), "> Second Relation")
 }
 
 func TestMemoryDetailsHeadersDoNotWrap(t *testing.T) {
@@ -65,6 +68,19 @@ func TestMemoryDetailsHeadersDoNotWrap(t *testing.T) {
 
 	assert.Equal(t, 1, lipgloss.Height(details.renderHeader("Details", 20)))
 	assert.Equal(t, 1, lipgloss.Height(details.renderHeader("Relations", 10)))
+}
+
+func TestMemoryDetailsUsesFullBodyHeight(t *testing.T) {
+	details := NewMemoryDetails(&memory.Memory{Name: "Current Memory"})
+	details.relations[0] = []*memory.Memory{{ID: 2, Name: "First Relation"}}
+	details.SetSize(90, 24)
+
+	view := details.View()
+
+	assert.Equal(t, 24, lipgloss.Height(view))
+	assert.Equal(t, 9, details.cursors[0].RenderSize)
+	assert.Equal(t, 9, details.cursors[1].RenderSize)
+	assert.Equal(t, 9, details.cursors[2].RenderSize)
 }
 
 func TestMemoryDetailsEnterReplacesRouteWithoutGrowingStack(t *testing.T) {
